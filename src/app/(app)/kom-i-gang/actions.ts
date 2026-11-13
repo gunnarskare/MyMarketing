@@ -16,3 +16,25 @@ export async function saveAssistantAnswer(field: Field, raw: string) {
  if(error)return {ok:false,message:"Kunne ikke lagre svaret. Prøv igjen."};
  return {ok:true};
 }
+
+const SERVICE_OPTIONS = [
+ "Lage en logo eller flere logovarianter",
+ "Utvikle fargepalett og fargeuttrykk",
+ "Finne skrifttyper som passer merkevaren",
+ "Lage en bildestil og visuelle eksempler",
+ "Lage en komplett merkevareguide",
+] as const;
+
+export async function submitBrandRequests(requested: string[]) {
+ if (!Array.isArray(requested) || requested.length < 1 || requested.length > SERVICE_OPTIONS.length ||
+     requested.some(item => !SERVICE_OPTIONS.includes(item as typeof SERVICE_OPTIONS[number]))) {
+   return { ok: false, message: "Velg minst én gyldig oppgave." };
+ }
+ const { supabase, org } = await requireOrg();
+ const { error } = await supabase.from("brand_service_requests").insert({
+   org_id: org.id,
+   requested_services: requested,
+ });
+ if (error) return { ok: false, message: "Ønskene kunne ikke sendes inn. Kontroller at siste databaseoppdatering er installert." };
+ return { ok: true };
+}
