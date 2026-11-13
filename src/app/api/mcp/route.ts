@@ -133,11 +133,8 @@ async function runTool(name: string, args: Record<string, unknown>, context: Awa
         patch.website_url = url.toString();
       } catch { return toolText("Nettsideadressen er ugyldig.", true); }
     }
-    const { data: existing, error: readError } = await supabase.from("brand_profiles")
-      .select("org_id").eq("org_id", org.id).maybeSingle();
-    if (readError) return toolText(`Kunne ikke lese profilen: ${readError.message}`, true);
     const { error } = await supabase.from("brand_profiles").upsert(
-      { org_id: org.id, ...patch },
+      { org_id: org.id, ...patch, updated_at: new Date().toISOString() },
       { onConflict: "org_id" },
     );
     if (error) return toolText(`Kunne ikke lagre profilen: ${error.message}`, true);
@@ -161,6 +158,14 @@ async function runTool(name: string, args: Record<string, unknown>, context: Awa
     if (!fileName || fileName.length > 180 || !allowed.has(mimeType) || !["logo", "image", "font"].includes(String(kind))) {
       return toolText("Filnavn, filtype eller ressurskategori er ugyldig.", true);
     }
+    if (base64.length > Math.ceil(MAX_UPLOAD_BYTES * 4 / 3) + 8 || !/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) {
+      return toolText("Filinnholdet må være gyldig base64 og maksimalt 10 MB.", true);
+    }
+    const isFont = String(kind) === "font";
+    if (isFont !== mimeType.startsWith("font/") && !(isFont && mimeType.startsWith("application/"))) {
+      return toolText("Fontfiler må ha font-MIME-type, og logoer/bilder må være bildefiler.", true);
+    }
+    if (!isFont && !mimeType.startsWith("image/")) return toolText("Logoer og bilder må være bildefiler.", true);
     const buffer = Buffer.from(base64, "base64");
     if (!buffer.length || buffer.length > MAX_UPLOAD_BYTES) return toolText("Filen må være mellom 1 byte og 10 MB.", true);
     const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
