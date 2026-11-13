@@ -1,20 +1,21 @@
 @import "tailwindcss";
 
 /*
- * Spott: farger og skrift.
- * Prikken (spot) er det eneste ornamentet, og den betyr alltid noe:
- * merket, en dag med et innlegg, eller at noe er klart.
+ * Spott — Midnight & Vermilion
+ * Premium editorial identity: warm paper, deep ink and a confident vermilion accent.
+ * Keep these tokens shared by the marketing site and the authenticated product.
  */
 @theme {
-  --color-paper: #ffffff;
-  --color-mist: #eef2f7;
-  --color-ink: #101b3b;
-  --color-ink-soft: #4a5672;
-  --color-ink-muted: #b9c3dc; /* dempet tekst på mørk bakgrunn */
-  --color-ink-line: #2d3a63; /* linjer på mørk bakgrunn */
-  --color-spot: #dc2f25;
-  --color-ok: #157a4b;
-  --color-line: #d5dbe6;
+  --color-paper: #fff8f2;
+  --color-mist: #e9eef6;
+  --color-ink: #0a1428;
+  --color-ink-soft: #526078;
+  --color-ink-muted: #c3ccda;
+  --color-ink-line: #34415a;
+  --color-spot: #ff4d31;
+  --color-spot-dark: #d83b27;
+  --color-ok: #18734f;
+  --color-line: #dedfe3;
 }
 
 @theme inline {
@@ -23,6 +24,8 @@
 
 :root {
   color-scheme: light;
+  --spott-radius-card: 1.25rem;
+  --spott-shadow-card: 0 28px 70px -42px rgb(10 20 40 / 42%);
 }
 
 html {
@@ -34,16 +37,35 @@ body {
   color: var(--color-ink);
 }
 
-/* Synlig tastaturfokus overalt. */
-:focus-visible {
-  outline: 3px solid var(--color-ink);
-  outline-offset: 3px;
+::selection {
+  color: var(--color-paper);
+  background: var(--color-ink);
 }
+
+/* Visible keyboard focus throughout the product. */
+:focus-visible {
+  outline: 3px solid var(--color-spot);
+  outline-offset: 4px;
+}
+
 .on-dark :focus-visible {
   outline-color: var(--color-paper);
 }
 
-/* Det ene bevegelsesøyeblikket på forsiden: prikken kommer inn. */
+.font-editorial {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.055em;
+}
+
+.spott-card {
+  border: 1px solid rgb(10 20 40 / 9%);
+  border-radius: var(--spott-radius-card);
+  background: #fff;
+  box-shadow: var(--spott-shadow-card);
+}
+
+/* The signature dot is used with intent: brand, status or a scheduled post. */
 @keyframes spot-in {
   from {
     opacity: 0;
@@ -54,6 +76,7 @@ body {
     transform: scale(1);
   }
 }
+
 .spot-in {
   animation: spot-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -67,7 +90,7 @@ body {
   }
 }
 
-/* Løpende tekst på juridiske sider. */
+/* Long-form legal content. */
 .legal {
   max-width: 42rem;
   font-size: 1.0625rem;
