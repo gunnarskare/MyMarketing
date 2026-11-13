@@ -14,6 +14,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <nav aria-label="Hovedmeny" className="flex items-center gap-1 sm:gap-2">
               <Link href="/dashboard" className="rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-mist">Oversikt</Link>
               <Link href="/profil" className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft hover:bg-mist hover:text-ink">Merkevareprofil</Link>
+              <Link href="/kom-i-gang" className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft hover:bg-mist hover:text-ink">Kom i gang</Link>
             </nav>
           </div>
           <div className="flex shrink-0 items-center gap-3">
