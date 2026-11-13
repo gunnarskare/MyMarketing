@@ -13,7 +13,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <Link href="/dashboard" aria-label="Spott – dashboard" className="shrink-0 rounded-sm"><Wordmark className="text-2xl" /></Link>
             <nav aria-label="Hovedmeny" className="flex items-center gap-1 sm:gap-2">
               <Link href="/dashboard" className="rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-mist">Oversikt</Link>
-              <Link href="/profil" className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft hover:bg-mist hover:text-ink">Merkevareprofil</Link>
+              <Link href="/profil" className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft hover:bg-mist hover:text-ink">Profil</Link>
+              <Link href="/merkevare" className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft hover:bg-mist hover:text-ink">Merkevare</Link>
               <Link href="/kom-i-gang" className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft hover:bg-mist hover:text-ink">Kom i gang</Link>
             </nav>
           </div>
