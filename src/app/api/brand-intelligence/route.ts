@@ -104,7 +104,7 @@ function candidatesFromHtml(html: string, pageUrl: string) {
     try {
       const u = new URL(decode(raw.trim()), pageUrl);
       if (u.protocol !== "https:") return;
-      if (!/\.(jpe?g|png|webp|avif)(?:[?#]|$)/i.test(u.pathname) && !/image\/(jpeg|png|webp|avif)/i.test(u.search)) return;
+      if (!/\.(jpe?g|png|webp|avif|svg)(?:[?#]|$)/i.test(u.pathname) && !/image\/(jpeg|png|webp|avif|svg\+xml)/i.test(u.search)) return;
       const previous = found.get(u.toString());
       // Keep the most useful classification when the same file appears in several places.
       if (!previous || /logo|ikon|grafikk/i.test(category)) {
@@ -119,6 +119,7 @@ function candidatesFromHtml(html: string, pageUrl: string) {
   const classify = (name: string, raw: string) => {
     const value = (name + " " + raw).toLowerCase();
     if (/logo|wordmark|brandmark|logotype/.test(value)) return "Logo";
+    if (/\.svg(?:[?#]|$)/i.test(raw)) return "SVG / vektorgrafikk";
     if (/favicon|apple-touch|icon|symbol/.test(value)) return "Ikon";
     if (/banner|hero|header|cover/.test(value)) return "Banner / toppgrafikk";
     if (/product|produkt|gallery|portfolio/.test(value)) return "Produkt / galleri";
