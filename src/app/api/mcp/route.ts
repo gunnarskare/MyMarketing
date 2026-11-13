@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseKey, supabaseUrl } from "@/lib/supabase/config";\nimport { buildTypographyDesignInstructions } from "@/lib/typography-prompt";
+import { supabaseKey, supabaseUrl } from "@/lib/supabase/config";
+import { buildTypographyDesignInstructions } from "@/lib/typography-prompt";
 
 const PROTOCOL_VERSION = "2025-03-26";
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
