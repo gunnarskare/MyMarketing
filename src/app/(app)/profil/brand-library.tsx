@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 
 type Asset = {
@@ -41,11 +41,11 @@ export function BrandLibrary({ orgId }: { orgId: string }) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  const supabase = createBrowserClient(
+  const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-  );
+  ), []);
 
   const loadAssets = useCallback(async () => {
     setLoading(true);
@@ -182,17 +182,23 @@ export function BrandLibrary({ orgId }: { orgId: string }) {
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         <label className="flex cursor-pointer flex-col gap-2 rounded-2xl border border-dashed border-line bg-white p-5 transition-colors hover:border-ink">
           <span className="flex size-10 items-center justify-center rounded-xl bg-mist"><span aria-hidden>▧</span></span>
           <span className="font-semibold">Last opp bilder</span>
-          <span className="text-xs leading-relaxed text-ink-soft">JPG, PNG, WebP eller AVIF · maks 10 MB per bilde</span>
+          <span className="text-xs leading-relaxed text-ink-soft">JPG, PNG, WebP eller AVIF · maks 10 MB</span>
           <input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple disabled={uploading} onChange={(event) => { void uploadFiles(event.currentTarget.files); event.currentTarget.value = ""; }} />
+        </label>
+        <label className="flex cursor-pointer flex-col gap-2 rounded-2xl border border-dashed border-line bg-white p-5 transition-colors hover:border-ink">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-mist"><span aria-hidden>◈</span></span>
+          <span className="font-semibold">Last opp logo</span>
+          <span className="text-xs leading-relaxed text-ink-soft">PNG, JPG, WebP eller AVIF · maks 10 MB</span>
+          <input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple disabled={uploading} onChange={(event) => { void uploadFiles(event.currentTarget.files, "logo"); event.currentTarget.value = ""; }} />
         </label>
         <label className="flex cursor-pointer flex-col gap-2 rounded-2xl border border-dashed border-line bg-white p-5 transition-colors hover:border-ink">
           <span className="flex size-10 items-center justify-center rounded-xl bg-mist"><span aria-hidden>Aa</span></span>
           <span className="font-semibold">Last opp skrifttyper</span>
-          <span className="text-xs leading-relaxed text-ink-soft">WOFF2, WOFF, TTF eller OTF · maks 5 MB per font</span>
+          <span className="text-xs leading-relaxed text-ink-soft">WOFF2, WOFF, TTF eller OTF · maks 5 MB</span>
           <input className="sr-only" type="file" accept=".woff2,.woff,.ttf,.otf,font/woff2,font/woff,font/ttf,font/otf" multiple disabled={uploading} onChange={(event) => { void uploadFiles(event.currentTarget.files); event.currentTarget.value = ""; }} />
         </label>
       </div>
