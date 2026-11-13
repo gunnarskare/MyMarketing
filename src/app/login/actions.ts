@@ -47,7 +47,7 @@ export async function login(formData: FormData) {
   if (error) {
     redirect(`/login?melding=${LOGIN_ERRORS[error.code ?? ""] ?? "teknisk"}`);
   }
-  redirect("/profil");
+  redirect("/dashboard");
 }
 
 export async function signup(formData: FormData) {
@@ -69,7 +69,7 @@ export async function signup(formData: FormData) {
   }
   // Økt med en gang betyr at e-postbekreftelse er slått av i Supabase.
   if (data.session) {
-    redirect("/profil");
+    redirect("/dashboard");
   }
   redirect("/login?melding=sjekk-epost");
 }
