@@ -1,7 +1,7 @@
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireOrg } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -106,11 +106,9 @@ function candidatesFromHtml(html: string, pageUrl: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Du må være logget inn." }, { status: 401 });
-  const { data: membership } = await supabase.from("organization_members").select("org_id").eq("user_id", user.id).limit(1).maybeSingle();
-  if (!membership?.org_id) return NextResponse.json({ error: "Fant ingen tilknyttet bedrift." }, { status: 403 });
+  let context: Awaited<ReturnType<typeof requireOrg>>;
+  try { context = await requireOrg(); } catch { return NextResponse.json({ error: "Du må være logget inn og ha en tilknyttet bedrift." }, { status: 401 }); }
+  const { supabase, org } = context;
   let body: { action?: string; website?: string; selected?: { url: string; name: string; category: string }[] };
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Ugyldig forespørsel." }, { status: 400 }); }
 
@@ -133,7 +131,7 @@ export async function POST(request: NextRequest) {
           if (total > MAX_TOTAL) throw new Error("Samlet import kan maksimalt være 8 MB.");
           const ext = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif" } as Record<string,string>)[file.type];
           const name = (item.name || "nettsidebilde").replace(/[^a-zA-Z0-9æøåÆØÅ._-]/gi, "_").slice(0, 80) + "." + ext;
-          const path = membership.org_id + "/" + crypto.randomUUID() + "-" + name;
+          const path = org.id + "/" + crypto.randomUUID() + "-" + name;
           const { error: uploadError } = await supabase.storage.from("brand-assets").upload(path, file.bytes, { contentType: file.type, upsert: false });
           if (uploadError) throw new Error(uploadError.message);
           const kind = /logo|merke/i.test(item.category + " " + item.name) ? "logo" : "image";
