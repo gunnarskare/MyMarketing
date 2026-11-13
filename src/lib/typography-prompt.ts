@@ -25,5 +25,5 @@ export function buildTypographyDesignInstructions(rawSettings: unknown): string 
     "Do not substitute, invent, or add font families. If a requested design cannot be achieved with these fonts, preserve the closest approved role and ask for approval before changing the brand typography.",
     "Keep typography consistent across all deliverables for this organization. Use the assigned role for each text element; do not use display fonts for long body copy.",
     "When returning HTML/CSS, define reusable CSS variables or tokens for these role assignments rather than hard-coding unrelated font stacks.",
-  ].join("\\n");
+  ].join("\n");
 }
