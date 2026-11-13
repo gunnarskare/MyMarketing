@@ -1,6 +1,6 @@
-# MyMarketing
+# Spott
 
-AI-markedsføringstjeneste: en bedrift legger inn nettsiden sin, får en ukeplan med ferdige
+Spott (repoet heter fortsatt MyMarketing) er en AI-markedsføringstjeneste fra S&S Marketing AS: en bedrift legger inn nettsiden sin, får en ukeplan med ferdige
 utkast, godkjenner dem, og innleggene publiseres til Facebook, Instagram og LinkedIn.
 
 Plan, arkitektur og datamodell: https://claude.ai/artifact/2iY1ry2gfMp9kPmUSgPtt3
@@ -27,6 +27,9 @@ Uten Supabase-verdiene starter appen likevel, men innlogging er slått av.
 | --- | --- |
 | `src/proxy.ts` | Fornyer innloggingsøkten og sender uinnloggede til `/login` |
 | `src/lib/auth.ts` | `requireUser` og `requireOrg`, brukt øverst i alt som krever innlogging |
+| `src/app/page.tsx` | Forsiden |
+| `src/app/personvern` | Personvernerklæringen |
+| `src/lib/company.ts` | Selskapsopplysninger som vises i bunnteksten og personvernerklæringen |
 | `src/app/login` | Innlogging og registrering med e-post og passord |
 | `src/app/auth/confirm` | Mottar lenken fra bekreftelses-e-posten |
 | `src/app/(app)/onboarding` | Oppretter bedriften ved første innlogging |

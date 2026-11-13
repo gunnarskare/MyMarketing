@@ -7,7 +7,7 @@ import { requireOrg } from "@/lib/auth";
 import { LANGUAGES, MAX_TEXT_LENGTH, type BrandProfile } from "@/lib/brand-profile";
 import { saveProfile } from "./actions";
 
-export const metadata: Metadata = { title: "Merkevareprofil · MyMarketing" };
+export const metadata: Metadata = { title: "Merkevareprofil" };
 
 const ERRORS: Record<string, string> = {
   nettside: "Nettadressen ser ikke riktig ut. Prøv for eksempel dinbedrift.no.",
@@ -21,8 +21,8 @@ export default function ProfilePage({ searchParams }: { searchParams: SearchPara
   return (
     <>
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Merkevareprofil</h1>
-        <p className="opacity-70">
+        <h1 className="text-3xl font-extrabold tracking-tight">Merkevareprofil</h1>
+        <p className="text-ink-soft">
           Dette er det AI-en skriver ut fra. Jo mer presist du fyller ut, jo bedre blir utkastene.
         </p>
       </header>
@@ -87,14 +87,14 @@ async function ProfileForm({ searchParams }: { searchParams: SearchParams }) {
           defaultValue={data?.avoid ?? ""}
         />
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="language" className="text-sm font-medium">
+          <label htmlFor="language" className="text-sm font-semibold">
             Språk i innleggene
           </label>
           <select
             id="language"
             name="language"
             defaultValue={data?.language ?? "nb"}
-            className="w-full rounded-lg border border-black/15 bg-transparent px-3 py-2.5 text-base dark:border-white/20"
+            className="w-full rounded-xl border border-line bg-paper px-3.5 py-3 text-base text-ink"
           >
             {LANGUAGES.map((language) => (
               <option key={language.value} value={language.value}>

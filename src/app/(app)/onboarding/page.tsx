@@ -7,7 +7,7 @@ import { Notice } from "@/components/notice";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { createOrganization } from "./actions";
 
-export const metadata: Metadata = { title: "Kom i gang · MyMarketing" };
+export const metadata: Metadata = { title: "Kom i gang" };
 
 const ERRORS: Record<string, string> = {
   navn: "Skriv inn et bedriftsnavn på mellom 1 og 120 tegn.",
@@ -20,8 +20,8 @@ export default function OnboardingPage({ searchParams }: { searchParams: SearchP
   return (
     <>
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Hvilken bedrift gjelder det?</h1>
-        <p className="opacity-70">Du kan endre navnet senere.</p>
+        <h1 className="text-3xl font-extrabold tracking-tight">Hvilken bedrift gjelder det?</h1>
+        <p className="text-ink-soft">Du kan endre navnet senere.</p>
       </header>
       <Suspense fallback={<Loading />}>
         <OnboardingForm searchParams={searchParams} />

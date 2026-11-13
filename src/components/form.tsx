@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
 const inputClass =
-  "w-full rounded-lg border border-black/15 bg-transparent px-3 py-2.5 text-base outline-none focus-visible:border-foreground focus-visible:ring-2 focus-visible:ring-foreground/20 dark:border-white/20";
+  "w-full rounded-xl border border-line bg-paper px-3.5 py-3 text-base text-ink placeholder:text-ink-soft/70";
 
 type FieldProps = {
   label: string;
@@ -16,12 +16,12 @@ export function Field({ label, hint, name, ...props }: FieldProps & ComponentPro
   const hintId = hint ? `${name}-hint` : undefined;
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={name} className="text-sm font-medium">
+      <label htmlFor={name} className="text-sm font-semibold">
         {label}
       </label>
       <input id={name} name={name} aria-describedby={hintId} className={inputClass} {...props} />
       {hint ? (
-        <p id={hintId} className="text-sm opacity-70">
+        <p id={hintId} className="text-sm text-ink-soft">
           {hint}
         </p>
       ) : null}
@@ -33,7 +33,7 @@ export function TextArea({ label, hint, name, ...props }: FieldProps & Component
   const hintId = hint ? `${name}-hint` : undefined;
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={name} className="text-sm font-medium">
+      <label htmlFor={name} className="text-sm font-semibold">
         {label}
       </label>
       <textarea
@@ -45,7 +45,7 @@ export function TextArea({ label, hint, name, ...props }: FieldProps & Component
         {...props}
       />
       {hint ? (
-        <p id={hintId} className="text-sm opacity-70">
+        <p id={hintId} className="text-sm text-ink-soft">
           {hint}
         </p>
       ) : null}
@@ -60,15 +60,12 @@ type SubmitButtonProps = ComponentProps<"button"> & {
 
 export function SubmitButton({ variant = "primary", children, disabled, ...props }: SubmitButtonProps) {
   const { pending } = useFormStatus();
-  const style =
-    variant === "primary"
-      ? "bg-foreground text-background"
-      : "border border-black/15 dark:border-white/20";
+  const style = variant === "primary" ? "bg-ink text-paper" : "border border-ink text-ink";
   return (
     <button
       type="submit"
       disabled={pending || disabled}
-      className={`rounded-lg px-4 py-2.5 text-base font-medium transition-opacity disabled:opacity-50 ${style}`}
+      className={`rounded-full px-5 py-3 text-base font-semibold transition-opacity disabled:opacity-50 ${style}`}
       {...props}
     >
       {children}

@@ -1,24 +1,106 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Spott: farger og skrift.
+ * Prikken (spot) er det eneste ornamentet, og den betyr alltid noe:
+ * merket, en dag med et innlegg, eller at noe er klart.
+ */
+@theme {
+  --color-paper: #ffffff;
+  --color-mist: #eef2f7;
+  --color-ink: #101b3b;
+  --color-ink-soft: #4a5672;
+  --color-ink-muted: #b9c3dc; /* dempet tekst på mørk bakgrunn */
+  --color-ink-line: #2d3a63; /* linjer på mørk bakgrunn */
+  --color-spot: #dc2f25;
+  --color-ok: #157a4b;
+  --color-line: #d5dbe6;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+/* Synlig tastaturfokus overalt. */
+:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 3px;
+}
+.on-dark :focus-visible {
+  outline-color: var(--color-paper);
+}
+
+/* Det ene bevegelsesøyeblikket på forsiden: prikken kommer inn. */
+@keyframes spot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.spot-in {
+  animation: spot-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .spot-in {
+    animation: none;
+  }
+}
+
+/* Løpende tekst på juridiske sider. */
+.legal {
+  max-width: 42rem;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.legal h2 {
+  margin-top: 3rem;
+  font-size: 1.625rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+.legal h3 {
+  margin-top: 1.75rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.legal p,
+.legal ul {
+  margin-top: 1rem;
+}
+.legal ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.legal li + li {
+  margin-top: 0.5rem;
+}
+.legal a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }

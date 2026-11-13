@@ -1,4 +1,5 @@
 import { Suspense, type ReactNode } from "react";
+import { Wordmark } from "@/components/wordmark";
 import { getAuth, getCurrentOrg } from "@/lib/auth";
 import { signOut } from "./actions";
 
@@ -7,11 +8,11 @@ import { signOut } from "./actions";
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <header className="border-b border-black/10 dark:border-white/15">
+      <header className="border-b border-line">
         <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-4 px-6 py-3">
           <div className="flex min-w-0 flex-col">
-            <span className="font-semibold">MyMarketing</span>
-            <span className="min-h-5 truncate text-sm opacity-70">
+            <Wordmark className="text-2xl" />
+            <span className="min-h-5 truncate text-sm text-ink-soft">
               <Suspense fallback={null}>
                 <AccountLabel />
               </Suspense>
@@ -20,7 +21,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <form action={signOut}>
             <button
               type="submit"
-              className="rounded-lg border border-black/15 px-3 py-2 text-sm font-medium dark:border-white/20"
+              className="rounded-full border border-ink px-4 py-2 text-sm font-semibold"
             >
               Logg ut
             </button>

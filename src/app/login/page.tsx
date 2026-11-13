@@ -3,10 +3,11 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Field, SubmitButton } from "@/components/form";
 import { Notice } from "@/components/notice";
+import { Wordmark } from "@/components/wordmark";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { login, signup } from "./actions";
 
-export const metadata: Metadata = { title: "Logg inn · MyMarketing" };
+export const metadata: Metadata = { title: "Logg inn" };
 
 const MESSAGES: Record<string, { tone: "info" | "error"; text: string }> = {
   feil: { tone: "error", text: "Feil e-post eller passord." },
@@ -28,11 +29,11 @@ export default function LoginPage({ searchParams }: { searchParams: SearchParams
 
   return (
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-6 py-16">
-      <header className="flex flex-col gap-1">
-        <Link href="/" className="text-sm opacity-70">
-          MyMarketing
+      <header className="flex flex-col gap-6">
+        <Link href="/" className="self-start rounded-sm">
+          <Wordmark className="text-3xl" />
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Logg inn</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Logg inn</h1>
       </header>
 
       {!configured ? (
@@ -60,6 +61,13 @@ export default function LoginPage({ searchParams }: { searchParams: SearchParams
             Opprett konto
           </SubmitButton>
         </div>
+        <p className="text-sm text-ink-soft">
+          Les hvordan vi behandler opplysningene dine i{" "}
+          <Link href="/personvern" className="font-semibold text-ink underline underline-offset-2">
+            personvernerklæringen
+          </Link>
+          .
+        </p>
       </form>
     </main>
   );

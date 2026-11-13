@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isSupabaseConfigured, supabaseKey, supabaseUrl } from "./config";
 
 /** Sider som er åpne for alle. Alt annet krever innlogging. */
-const PUBLIC_PREFIXES = ["/login", "/auth"];
+const PUBLIC_PREFIXES = ["/login", "/auth", "/personvern"];
 /** Sider innloggede ikke trenger: de sendes rett til appen. */
 const GUEST_ONLY_PATHS = ["/", "/login"];
 const APP_HOME = "/profil";
