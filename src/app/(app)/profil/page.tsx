@@ -4,6 +4,7 @@ import { Loading } from "@/components/loading";
 import { requireOrg } from "@/lib/auth";
 import type { BrandProfile } from "@/lib/brand-profile";
 import { ProfileForm } from "./profile-form";
+import { BrandLibrary } from "./brand-library";
 
 export const metadata: Metadata = { title: "Merkevareprofil" };
 
@@ -30,5 +31,10 @@ async function SavedProfile() {
     .select("website_url, tone, audience, products, avoid, language")
     .eq("org_id", org.id)
     .maybeSingle<BrandProfile>();
-  return <ProfileForm profile={data ?? null} />;
+  return (
+    <>
+      <ProfileForm profile={data ?? null} />
+      <BrandLibrary orgId={org.id} />
+    </>
+  );
 }
