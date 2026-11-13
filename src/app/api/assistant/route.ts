@@ -4,7 +4,6 @@ import { requireOrg } from "@/lib/auth";
 import { ensureOpenAIConfigured } from "@/lib/ai/openai-client";
 import { createSpottAssistant } from "@/lib/ai/agents/spott-assistant";
 
-export const runtime = "nodejs";
 export const maxDuration = 30;
 
 const MAX_MESSAGE_LENGTH = 12_000;
