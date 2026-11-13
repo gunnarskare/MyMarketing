@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 import { isSupabaseConfigured } from "./supabase/config";
 import { createClient } from "./supabase/server";
@@ -8,6 +9,9 @@ export type Organization = { id: string; name: string };
 /** Innlogget bruker, eller null. Verifiserer økten på serveren. */
 export const getAuth = cache(async () => {
   if (!isSupabaseConfigured()) return null;
+  // Supabase leser klokka (Date.now) når økten sjekkes. Uten dette tror Next.js
+  // at siden kan forhåndsbygges, og visningen etter et skjema stopper med en feil.
+  await connection();
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   if (!data?.claims) return null;
