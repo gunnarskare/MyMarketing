@@ -15,7 +15,8 @@ const steps:Step[]=[
 ];
 export function BrandAssistant({orgName,profile,assets}:{orgName:string;profile:BrandProfile|null;assets:Asset[]}) {
  const [stepIndex,setStepIndex]=useState(0),[answers,setAnswers]=useState<Record<string,string>>({}),[draft,setDraft]=useState(""),[requests,setRequests]=useState<string[]>([]),[message,setMessage]=useState(""),[done,setDone]=useState(false);
- const [pending,startTransition]=useTransition();\n const [submitted,setSubmitted]=useState(false);
+ const [pending,startTransition]=useTransition();
+ const [submitted,setSubmitted]=useState(false);
  const step=steps[stepIndex];
  const existing=useMemo(()=>({website:profile?.website_url??"",offer:profile?.products??"",audience:profile?.audience??"",voice:profile?.tone??"",avoid:profile?.avoid??""}),[profile]);
  const currentValue=answers[step.id]??(step.field?existing[step.id as keyof typeof existing]:"");
