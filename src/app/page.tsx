@@ -6,35 +6,38 @@ import { company } from "@/lib/company";
 
 const steps = [
   {
-    title: "Fortell om bedriften",
-    text: "Legg inn nettsiden og beskriv hvordan dere vil høres ut. Det blir merkevareprofilen Spott skriver ut fra.",
+    number: "01",
+    title: "Fortell hvem dere er",
+    text: "Legg inn nettsiden og fortell hvordan bedriften skal høres ut. Spott bruker det som utgangspunkt for merkevareprofilen.",
   },
   {
-    title: "Få ukas utkast",
-    text: "Hver uke lager Spott ferdige innlegg, tilpasset Facebook, Instagram og LinkedIn hver for seg.",
+    number: "02",
+    title: "Få innhold klart",
+    text: "Målet er ferdige innlegg til kanalene dere bruker – tilpasset både bedriften og formatet.",
   },
   {
-    title: "Godkjenn",
-    text: "Les gjennom, rett på det du vil, og godkjenn. Spott publiserer til tidene dere har valgt.",
+    number: "03",
+    title: "Godkjenn med trygghet",
+    text: "Du skal alltid kunne lese gjennom og gjøre endringer før noe publiseres på vegne av bedriften.",
   },
 ];
 
 const progress = [
-  { label: "Konto og bedrift", done: true },
+  { label: "Konto og bedriftsoppsett", done: true },
   { label: "Merkevareprofil", done: true },
   { label: "Ukeplan med ferdige utkast", done: false },
-  { label: "Publisering til Facebook, Instagram og LinkedIn", done: false },
-  { label: "Tall som gjør neste uke bedre", done: false },
+  { label: "Publisering til sosiale medier", done: false },
+  { label: "Innsikt og forbedringer", done: false },
 ];
 
 const promises = [
   {
-    title: "Ingenting går ut uten deg",
-    text: "Hvert innlegg venter til du har lest og godkjent det.",
+    title: "Du har siste ord",
+    text: "Godkjenning skal være en naturlig del av arbeidsflyten. Innhold skal ikke publiseres uten at du har sagt ja.",
   },
   {
-    title: "Lagret i EU",
-    text: "Kontoen og opplysningene om bedriften ligger i en database i Stockholm.",
+    title: "Personvern tas på alvor",
+    text: "Bedriftsopplysninger lagres i EU. Vi samler inn det som trengs for å levere tjenesten.",
   },
   {
     title: "Et norsk selskap",
@@ -42,162 +45,171 @@ const promises = [
   },
 ];
 
-/** Punktum i overskrifter tegnes som prikken. Skjermlesere får et vanlig punktum. */
-function Stop() {
+function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <span className="sr-only">.</span>
-      <span aria-hidden className="ml-[0.05em] inline-block size-[0.21em] rounded-full bg-spot" />
-    </>
+    <p className="flex items-center gap-3 text-xs font-bold tracking-[0.18em] text-spot-dark uppercase">
+      <span aria-hidden className="size-2 rounded-full bg-spot" />
+      {children}
+    </p>
   );
 }
 
-// Innloggede sendes videre til appen av proxyen (src/lib/supabase/proxy.ts),
-// så forsiden er helt statisk.
 export default function Home() {
   return (
     <>
       <SiteHeader />
       <main className="flex-1">
-        <section className="overflow-hidden">
-          <div className="mx-auto grid w-full max-w-6xl gap-14 px-6 pb-20 pt-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-10 lg:pb-28 lg:pt-14">
-            <div>
-              <h1 className="text-[clamp(2.25rem,11.2vw,4.5rem)] leading-[0.98] font-black tracking-[-0.03em] text-balance [word-spacing:0.04em] lg:text-[clamp(3.5rem,5.6vw,4.5rem)]">
-                <span className="block">
-                  Spott skriver ukas innlegg
-                  <Stop />
-                </span>
-                <span className="block">
-                  Du godkjenner
-                  <Stop />
-                </span>
+        <section className="relative overflow-hidden">
+          <div aria-hidden className="pointer-events-none absolute -right-36 top-16 hidden size-[34rem] rounded-full border border-spot/15 lg:block" />
+          <div aria-hidden className="pointer-events-none absolute -right-20 top-32 hidden size-[25rem] rounded-full border border-spot/20 lg:block" />
+          <div className="mx-auto grid w-full max-w-7xl gap-14 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-14 lg:px-10 lg:pb-32 lg:pt-20">
+            <div className="relative z-10">
+              <Eyebrow>EN ENKLERE HVERDAG MED MARKEDSFØRING</Eyebrow>
+              <h1 className="mt-7 max-w-3xl text-[clamp(3.2rem,8vw,6.8rem)] leading-[0.91] font-semibold tracking-[-0.065em] text-balance">
+                Du driver
+                <br />
+                bedriften<span className="font-editorial text-spot">.</span>
+                <br />
+                Vi tar oss av
+                <br />
+                synligheten<span className="font-editorial text-spot">.</span>
               </h1>
-              <p className="mt-7 max-w-[34rem] text-lg leading-relaxed text-ink-soft sm:text-xl">
-                For små bedrifter uten markedsavdeling. Spott lærer hvordan dere høres ut, skriver
-                innlegg til Facebook, Instagram og LinkedIn, og publiserer dem til riktig tid.
+              <p className="mt-8 max-w-xl text-lg leading-relaxed text-ink-soft sm:text-xl">
+                Spott hjelper små bedrifter med å holde seg synlige. Vi bygger en markedsføringsassistent
+                som lærer bedriften å kjenne og gjør veien fra idé til publisert innlegg enklere.
               </p>
-              <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+              <div className="mt-9 flex flex-wrap items-center gap-4">
                 <Link
                   href="/login"
-                  className="rounded-full bg-ink px-7 py-4 text-lg font-semibold text-paper"
+                  className="inline-flex min-h-14 items-center justify-center rounded-full bg-ink px-7 text-base font-semibold text-paper shadow-lg shadow-ink/10 transition-all hover:-translate-y-0.5 hover:bg-[#172747]"
                 >
-                  Opprett konto
+                  Opprett konto <span aria-hidden className="ml-3 text-lg text-spot">↗</span>
                 </Link>
                 <a
                   href="#slik-virker-det"
-                  className="rounded-sm text-lg font-semibold underline decoration-2 underline-offset-[6px]"
+                  className="inline-flex min-h-14 items-center rounded-full px-5 text-base font-semibold text-ink transition-colors hover:bg-white"
                 >
-                  Slik virker det
+                  Slik fungerer det <span aria-hidden className="ml-2">↓</span>
                 </a>
+              </div>
+              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line pt-6 text-sm text-ink-soft">
+                <span className="flex items-center gap-2"><span className="size-2 rounded-full bg-spot" /> Norsk tjeneste</span>
+                <span className="flex items-center gap-2"><span className="size-2 rounded-full bg-spot" /> Du beholder kontrollen</span>
+                <span className="flex items-center gap-2"><span className="size-2 rounded-full bg-spot" /> Bygget for små bedrifter</span>
               </div>
             </div>
 
-            <div className="relative isolate">
-              <div
-                aria-hidden
-                className="spot-in absolute top-1/2 left-[16%] -z-10 aspect-square w-[130%] max-w-[36rem] -translate-y-1/2 rounded-full bg-spot"
-              />
+            <div className="relative isolate mx-auto flex w-full max-w-xl items-center justify-center lg:justify-end">
+              <div aria-hidden className="spot-in absolute left-1/2 top-1/2 -z-10 aspect-square w-[115%] max-w-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-spot" />
+              <div aria-hidden className="absolute -right-3 -top-7 -z-10 size-24 rounded-full border border-paper/70" />
               <WeekDemo />
+              <div className="absolute -bottom-7 -left-4 hidden rounded-2xl border border-line bg-paper px-5 py-4 shadow-xl shadow-ink/10 sm:block">
+                <p className="text-xs font-semibold tracking-wide text-ink-soft uppercase">Din bedrift. Din stemme.</p>
+                <p className="mt-1 font-editorial text-2xl">Alltid gjenkjennelig<span className="text-spot">.</span></p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section id="slik-virker-det" className="on-dark scroll-mt-4 bg-ink text-paper">
-          <div className="mx-auto w-full max-w-6xl px-6 py-20 lg:py-28">
-            <h2 className="max-w-3xl text-4xl leading-[1.05] font-extrabold tracking-[-0.025em] text-balance sm:text-5xl">
-              Fra nettside til publisert innlegg i tre steg
-            </h2>
-            <ol className="mt-14 grid gap-12 lg:grid-cols-3 lg:gap-10">
-              {steps.map((step, index) => (
-                <li key={step.title}>
-                  <span
-                    aria-hidden
-                    className="flex size-12 items-center justify-center rounded-full bg-spot text-xl font-extrabold"
-                  >
-                    {index + 1}
-                  </span>
-                  <h3 className="mt-5 text-2xl font-bold tracking-tight">{step.title}</h3>
-                  <p className="mt-2 max-w-sm leading-relaxed text-ink-muted">{step.text}</p>
+        <section id="slik-virker-det" className="on-dark scroll-mt-6 bg-ink text-paper">
+          <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+            <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+              <div>
+                <Eyebrow>SLIK FUNGERER SPOTT</Eyebrow>
+                <h2 className="mt-5 max-w-xl text-4xl leading-[1.02] font-semibold tracking-[-0.045em] text-balance sm:text-5xl lg:text-6xl">
+                  Fra bedriftens historie til innhold folk kjenner igjen<span className="font-editorial text-spot">.</span>
+                </h2>
+              </div>
+              <p className="max-w-lg text-lg leading-relaxed text-ink-muted lg:justify-self-end">
+                God markedsføring starter med å forstå hvem du er, hva du tilbyr og hvem du vil nå.
+                Spott skal gjøre den jobben enklere – uten å ta stemmen fra bedriften.
+              </p>
+            </div>
+            <ol className="mt-16 grid gap-10 border-t border-ink-line pt-8 md:grid-cols-3 md:gap-8">
+              {steps.map((step) => (
+                <li key={step.number} className="relative">
+                  <span className="font-editorial text-5xl text-spot">{step.number}</span>
+                  <h3 className="mt-6 text-2xl font-semibold tracking-tight">{step.title}</h3>
+                  <p className="mt-3 max-w-sm leading-relaxed text-ink-muted">{step.text}</p>
                 </li>
               ))}
             </ol>
           </div>
         </section>
 
-        <section>
-          <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-20 lg:grid-cols-2 lg:gap-16 lg:py-28">
+        <section className="bg-white">
+          <div className="mx-auto grid w-full max-w-7xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:px-10 lg:py-28">
             <div>
-              <h2 className="text-4xl leading-[1.05] font-extrabold tracking-[-0.025em] text-balance sm:text-5xl">
-                Spott er helt nytt
+              <Eyebrow>ÆRLIG OM STATUS</Eyebrow>
+              <h2 className="mt-5 max-w-lg text-4xl leading-[1.02] font-semibold tracking-[-0.05em] text-balance sm:text-5xl">
+                Vi bygger Spott – steg for steg<span className="font-editorial text-spot">.</span>
               </h2>
               <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-soft">
-                Vi bygger tjenesten steg for steg og sier fra om hva som virker i dag. Oppretter du
-                konto nå, ligger merkevareprofilen klar den dagen ukeplanen kommer.
+                Spott er under utvikling. Konto og merkevareprofil er på plass, og resten av
+                markedsføringsflyten bygges videre. Vi er åpne om hva som er klart og hva som kommer.
               </p>
+              <Link href="/login" className="mt-8 inline-flex items-center gap-3 font-semibold underline decoration-2 underline-offset-4 transition-colors hover:text-spot-dark">
+                Opprett konto <span aria-hidden>↗</span>
+              </Link>
             </div>
-            <ul className="border-b border-line">
-              {progress.map((item) => (
-                <li
-                  key={item.label}
-                  className="flex items-center gap-4 border-t border-line py-4 text-lg"
-                >
-                  <span
-                    aria-hidden
-                    className={
-                      item.done
-                        ? "size-4 shrink-0 rounded-full bg-spot"
-                        : "size-4 shrink-0 rounded-full border-2 border-ink-soft"
-                    }
-                  />
-                  <span className={item.done ? "flex-1 font-semibold" : "flex-1"}>{item.label}</span>
-                  <span className={item.done ? "text-base font-bold" : "text-base text-ink-soft"}>
-                    {item.done ? "Klart" : "Kommer"}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="rounded-[1.5rem] border border-line bg-paper p-6 sm:p-8">
+              <div className="flex items-center justify-between gap-4">
+                <p className="font-semibold">Produktstatus</p>
+                <span className="rounded-full bg-spot/10 px-3 py-1 text-xs font-bold text-spot-dark">Under utvikling</span>
+              </div>
+              <ul className="mt-6">
+                {progress.map((item, index) => (
+                  <li key={item.label} className="flex items-center gap-4 border-t border-line py-4">
+                    <span className={item.done ? "flex size-8 shrink-0 items-center justify-center rounded-full bg-ink text-paper" : "flex size-8 shrink-0 items-center justify-center rounded-full border border-line text-ink-soft"}>
+                      {item.done ? <span aria-hidden>✓</span> : <span className="text-xs font-semibold">{String(index + 1).padStart(2, "0")}</span>}
+                    </span>
+                    <span className={item.done ? "flex-1 font-semibold" : "flex-1 text-ink-soft"}>{item.label}</span>
+                    <span className={item.done ? "text-xs font-bold text-ok" : "text-xs text-ink-soft"}>{item.done ? "Klart" : "Kommer"}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
 
-        <section className="bg-mist">
-          <div className="mx-auto w-full max-w-6xl px-6 py-20 lg:py-28">
-            <h2 className="text-4xl leading-[1.05] font-extrabold tracking-[-0.025em] text-balance sm:text-5xl">
-              Du har kontrollen
+        <section id="kontroll" className="bg-mist">
+          <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+            <Eyebrow>TEKNOLOGI MED MENNESKET I SENTRUM</Eyebrow>
+            <h2 className="mt-5 max-w-2xl text-4xl leading-[1.02] font-semibold tracking-[-0.05em] text-balance sm:text-5xl lg:text-6xl">
+              Smart hjelp. Du har kontrollen<span className="font-editorial text-spot">.</span>
             </h2>
-            <ul className="mt-12 grid gap-10 lg:grid-cols-3 lg:gap-10">
-              {promises.map((promise) => (
+            <ul className="mt-14 grid gap-8 md:grid-cols-3 md:gap-10">
+              {promises.map((promise, index) => (
                 <li key={promise.title} className="border-t-2 border-ink pt-5">
-                  <h3 className="text-xl font-bold tracking-tight">{promise.title}</h3>
-                  <p className="mt-2 max-w-sm leading-relaxed text-ink-soft">{promise.text}</p>
+                  <span className="font-editorial text-3xl text-spot">0{index + 1}</span>
+                  <h3 className="mt-5 text-xl font-semibold tracking-tight">{promise.title}</h3>
+                  <p className="mt-3 max-w-sm leading-relaxed text-ink-soft">{promise.text}</p>
                 </li>
               ))}
             </ul>
             <p className="mt-12">
-              <Link
-                href="/personvern"
-                className="rounded-sm font-semibold underline decoration-2 underline-offset-[6px]"
-              >
+              <Link href="/personvern" className="font-semibold underline decoration-2 underline-offset-4">
                 Les personvernerklæringen
               </Link>
             </p>
           </div>
         </section>
 
-        <section className="on-dark bg-spot text-paper">
-          <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-8 px-6 py-20 lg:flex-row lg:items-end lg:justify-between lg:py-24">
+        <section className="relative overflow-hidden bg-spot text-paper">
+          <div aria-hidden className="absolute -right-24 -top-40 size-[32rem] rounded-full border border-paper/20" />
+          <div aria-hidden className="absolute -right-8 -top-24 size-[21rem] rounded-full border border-paper/20" />
+          <div className="relative mx-auto flex w-full max-w-7xl flex-col items-start gap-10 px-5 py-20 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 lg:py-24">
             <div>
-              <h2 className="max-w-2xl text-4xl leading-[1.02] font-black tracking-[-0.03em] sm:text-6xl">
-                Lag merkevare&shy;profilen i dag
+              <p className="text-xs font-bold tracking-[0.18em] uppercase text-paper/80">SPOTT · MARKEDSFØRING I BEDRE FLYT</p>
+              <h2 className="mt-5 max-w-3xl text-5xl leading-[0.98] font-semibold tracking-[-0.055em] text-balance sm:text-6xl lg:text-7xl">
+                Mer tid til bedriften. Mindre styr med markedsføringen<span className="font-editorial">.</span>
               </h2>
-              <p className="mt-5 max-w-lg text-lg leading-relaxed">
-                Det tar et par minutter. Du trenger bare en e-postadresse og nettsiden til bedriften.
+              <p className="mt-6 max-w-lg text-lg leading-relaxed text-paper/90">
+                Start med å fortelle oss hvem dere er. Så bygger vi videre derfra.
               </p>
             </div>
-            <Link
-              href="/login"
-              className="shrink-0 rounded-full bg-paper px-7 py-4 text-lg font-semibold text-ink"
-            >
-              Opprett konto
+            <Link href="/login" className="inline-flex min-h-14 shrink-0 items-center justify-center rounded-full bg-paper px-7 text-base font-semibold text-ink transition-all hover:-translate-y-0.5 hover:bg-white">
+              Kom i gang <span aria-hidden className="ml-3 text-lg text-spot">↗</span>
             </Link>
           </div>
         </section>
