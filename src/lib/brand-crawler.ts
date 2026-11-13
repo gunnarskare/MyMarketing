@@ -26,8 +26,22 @@ export function sitemapLocations(xml: string, baseUrl: string) {
   const urls = new Set<string>();
   for (const match of xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)) {
     const normalized = normalizePageUrl(match[1].trim(), baseUrl, origin);
-    if (normalized) urls.add(normalized);
+    if (normalized && !/\.xml(?:[?#]|$)/i.test(new URL(normalized).pathname)) urls.add(normalized);
     if (urls.size >= 500) break;
+  }
+  return [...urls];
+}
+
+export function sitemapIndexLocations(xml: string, baseUrl: string) {
+  if (!/<sitemapindex\b/i.test(xml)) return [];
+  const origin = new URL(baseUrl).origin;
+  const urls = new Set<string>();
+  for (const match of xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)) {
+    try {
+      const url = new URL(match[1].trim(), baseUrl);
+      if (url.protocol === "https:" && url.origin === origin && /\.xml(?:[?#]|$)/i.test(url.pathname)) urls.add(url.toString());
+    } catch { /* ignore invalid sitemap references */ }
+    if (urls.size >= 5) break;
   }
   return [...urls];
 }
@@ -61,7 +75,16 @@ export async function crawlWebsite(
   // Sitemap is an efficient source of deep pages. Keep it same-origin and bounded.
   try {
     const sitemap = await fetchPage(new URL("/sitemap.xml", origin).toString());
-    for (const url of sitemapLocations(sitemap.html, sitemap.url).slice(0, 200)) {
+    const sitemapFiles = sitemapIndexLocations(sitemap.html, sitemap.url);
+    const sitemapDocuments = [sitemap];
+    for (const sitemapUrl of sitemapFiles) {
+      try { sitemapDocuments.push(await fetchPage(sitemapUrl)); } catch { /* continue with other sitemap files */ }
+    }
+    const sitemapPages = new Set<string>();
+    for (const document of sitemapDocuments) {
+      for (const url of sitemapLocations(document.html, document.url)) sitemapPages.add(url);
+    }
+    for (const url of [...sitemapPages].slice(0, 200)) {
       if (!queued.has(url) && queued.size < MAX_PAGES * 3) {
         queued.add(url);
         queue.push({ url, depth: 1 });
