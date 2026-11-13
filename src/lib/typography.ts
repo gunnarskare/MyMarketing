@@ -32,7 +32,7 @@ export const DEFAULT_TYPOGRAPHY: TypographySettings = {
 
 export function normalizeTypography(value: unknown): TypographySettings {
   const input = value && typeof value === "object" ? value as Record<string, unknown> : {};
-  const result = { ...DEFAULT_TYPOGRAPHY };
+  const result: TypographySettings = { ...DEFAULT_TYPOGRAPHY };
   for (const role of TYPOGRAPHY_ROLES) {
     const candidate = input[role.key];
     if (!candidate || typeof candidate !== "object") continue;
