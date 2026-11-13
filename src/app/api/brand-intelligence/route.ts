@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
           const { error: uploadError } = await supabase.storage.from("brand-assets").upload(path, file.bytes, { contentType: file.type, upsert: false });
           if (uploadError) throw new Error(uploadError.message);
           const kind = /logo|merke/i.test(item.category + " " + item.name) ? "logo" : "image";
-          const { error: dbError } = await supabase.from("brand_assets").insert({ org_id: membership.org_id, kind, original_name: name, storage_path: path, mime_type: file.type, file_size: file.bytes.length, is_primary: false });
+          const { error: dbError } = await supabase.from("brand_assets").insert({ org_id: org.id, kind, original_name: name, storage_path: path, mime_type: file.type, file_size: file.bytes.length, is_primary: false });
           if (dbError) { await supabase.storage.from("brand-assets").remove([path]); throw new Error(dbError.message); }
           imported.push(name);
         } catch (error) { failures.push((item.name || "Bilde") + ": " + (error instanceof Error ? error.message : "Import feilet")); }
