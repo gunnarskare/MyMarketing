@@ -16,7 +16,9 @@ export function BrandWebsiteImporter() {
   async function analyze() {
     setBusy(true); setError(""); setMessage(""); setAnalysis(null); setSelected([]);
     try {
-      const response = await fetch("/api/brand-intelligence", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "analyze", website }) });
+      const trimmedWebsite = website.trim();
+      const normalizedWebsite = /^https?:\/\//i.test(trimmedWebsite) ? trimmedWebsite : "https://" + trimmedWebsite;
+      const response = await fetch("/api/brand-intelligence", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "analyze", website: normalizedWebsite }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Kunne ikke analysere nettsiden.");
       setAnalysis(data); setSelected(data.assets.map((a: Candidate) => a.url));
@@ -41,7 +43,7 @@ export function BrandWebsiteImporter() {
   return <section className="flex flex-col gap-5 rounded-3xl border border-line bg-white p-5 sm:p-7" aria-labelledby="website-import-title">
     <div><p className="text-xs font-bold tracking-[0.16em] text-spot uppercase">AI-MERKEVAREANALYSE</p><h2 id="website-import-title" className="mt-2 text-2xl font-semibold">Hent merkevare fra nettside</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">Spott analyserer nettsiden og finner bilder, logoer, ikoner, fargepalett og skrifttyper. Velg selv hva som skal importeres til bedriftens private merkevarebibliotek.</p></div>
     <form className="flex flex-col gap-3 sm:flex-row" onSubmit={e=>{e.preventDefault();void analyze();}}>
-      <input type="url" value={website} onChange={e=>setWebsite(e.target.value)} placeholder="https://malina.no" required className="min-h-12 min-w-0 flex-1 rounded-xl border border-line bg-paper px-4 text-sm outline-none focus:border-ink"/>
+      <input type="text" inputMode="url" value={website} onChange={e=>setWebsite(e.target.value)} placeholder="https://malina.no" required className="min-h-12 min-w-0 flex-1 rounded-xl border border-line bg-paper px-4 text-sm outline-none focus:border-ink"/>
       <button type="submit" disabled={busy || !website.trim()} className="min-h-12 rounded-full bg-ink px-6 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Analyserer …" : "Analyser nettside"}</button>
     </form>
     {error ? <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p> : null}
