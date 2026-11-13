@@ -8,8 +8,9 @@ export const maxDuration = 30;
 
 const MAX_HTML = 2_000_000;
 const MAX_IMAGE = 2_500_000;
+const MAX_CSS = 1_000_000;
 const MAX_TOTAL = 8_000_000;
-const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "image/svg+xml"]);
 const PRIVATE_V4 = /^(0|10|127|169\.254|172\.(1[6-9]|2\d|3[01])|192\.168|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7]))\./;
 
 function isPublicIp(ip: string) {
@@ -59,10 +60,10 @@ async function safeUrl(raw: string, base?: string) {
   return url;
 }
 
-async function fetchPublic(raw: string, maxBytes: number, imageOnly = false, allowXml = false, timeoutMs = 12_000) {
+async function fetchPublic(raw: string, maxBytes: number, imageOnly = false, allowXml = false, timeoutMs = 12_000, cssOnly = false) {
   let url = await safeUrl(raw);
   for (let hop = 0; hop < 4; hop++) {
-    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(timeoutMs), headers: { "User-Agent": "SpottBrandImporter/1.0", Accept: imageOnly ? "image/*" : allowXml ? "text/html,application/xhtml+xml,application/xml,text/xml" : "text/html,application/xhtml+xml" } });
+    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(timeoutMs), headers: { "User-Agent": "SpottBrandImporter/1.0", Accept: imageOnly ? "image/*" : cssOnly ? "text/css" : allowXml ? "text/html,application/xhtml+xml,application/xml,text/xml" : "text/html,application/xhtml+xml" } });
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get("location");
       if (!location) throw new Error("Ugyldig videresending fra nettsiden.");
@@ -72,7 +73,8 @@ async function fetchPublic(raw: string, maxBytes: number, imageOnly = false, all
     if (!response.ok) throw new Error("Nettsiden svarte med HTTP " + response.status + ".");
     const type = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
     if (imageOnly && !IMAGE_TYPES.has(type)) throw new Error("Filtypen er ikke et støttet bildeformat.");
-    if (!imageOnly && !(["text/html", "application/xhtml+xml"].includes(type) || allowXml && ["application/xml", "text/xml"].includes(type))) throw new Error("Adressen leverte ikke en HTML- eller XML-side.");
+    if (cssOnly && type !== "text/css") throw new Error("Adressen leverte ikke CSS.");
+    if (!imageOnly && !cssOnly && !(["text/html", "application/xhtml+xml"].includes(type) || allowXml && ["application/xml", "text/xml"].includes(type))) throw new Error("Adressen leverte ikke en HTML- eller XML-side.");
     const declared = Number(response.headers.get("content-length") ?? 0);
     if (declared > maxBytes) throw new Error("Filen er større enn tillatt grense.");
     const reader = response.body?.getReader();
@@ -172,6 +174,56 @@ function candidatesFromHtml(html: string, pageUrl: string) {
   });
   return { assets: assets.slice(0, 100), colors, fonts };
 }
+
+function stylesheetUrls(html: string, pageUrl: string) {
+  const urls = new Set<string>();
+  for (const match of html.matchAll(/<link\b([^>]+)>/gi)) {
+    const attrs = match[1];
+    const rel = attrs.match(/\brel\s*=\s*["']([^"']+)["']/i)?.[1] ?? "";
+    const href = attrs.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
+    if (!/stylesheet/i.test(rel) || !href) continue;
+    try {
+      const url = new URL(decode(href), pageUrl);
+      if (url.protocol === "https:") urls.add(url.toString());
+    } catch { /* ignore malformed CSS links */ }
+  }
+  return [...urls].slice(0, 8);
+}
+
+function candidatesFromCss(css: string, cssUrl: string) {
+  const assets: { url: string; name: string; category: string }[] = [];
+  const seen = new Set<string>();
+  for (const match of css.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)) {
+    const raw = match[1].trim();
+    if (!raw || /^(data:|blob:|#)/i.test(raw)) continue;
+    try {
+      const url = new URL(decode(raw), cssUrl);
+      if (url.protocol !== "https:" || seen.has(url.toString())) continue;
+      if (!/\.(jpe?g|png|webp|avif|svg)(?:[?#]|$)/i.test(url.pathname)) continue;
+      seen.add(url.toString());
+      const isSvg = /\.svg(?:[?#]|$)/i.test(url.pathname);
+      assets.push({
+        url: url.toString(),
+        name: isSvg ? "SVG-grafikk fra CSS" : "CSS-bakgrunnsbilde",
+        category: /logo|brand|symbol/i.test(raw) ? "Logo" : isSvg ? "SVG / vektorgrafikk" : "CSS-bakgrunn / grafikk",
+      });
+    } catch { /* ignore malformed asset URL */ }
+  }
+  return assets;
+}
+
+function sanitizeSvg(input: Buffer) {
+  let svg = input.toString("utf8");
+  if (!/<svg[\s>]/i.test(svg)) throw new Error("Ugyldig SVG-fil.");
+  svg = svg
+    .replace(/<\s*(script|foreignObject|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+    .replace(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/\s+(?:href|xlink:href)\s*=\s*(["'])(?!#|data:image\/(?:png|jpeg|webp);base64,)[\s\S]*?\1/gi, "")
+    .replace(/url\(\s*["']?(?!#)[^)]+\)/gi, "none")
+    .replace(/<\?xml[^>]*>/gi, "");
+  return Buffer.from(svg, "utf8");
+}
+
 export async function POST(request: NextRequest) {
   let context: Awaited<ReturnType<typeof requireOrg>>;
   try { context = await requireOrg(); } catch { return NextResponse.json({ error: "Du må være logget inn og ha en tilknyttet bedrift." }, { status: 401 }); }
@@ -197,7 +249,14 @@ export async function POST(request: NextRequest) {
       const fonts = new Set<string>();
       for (const crawledPage of crawl.pages) {
         const parsed = candidatesFromHtml(crawledPage.html, crawledPage.url);
-        for (const asset of parsed.assets) {
+        const pageAssets = [...parsed.assets];
+        for (const cssUrl of stylesheetUrls(crawledPage.html, crawledPage.url)) {
+          try {
+            const cssFile = await fetchPublic(cssUrl, MAX_CSS, false, false, 4_000, true);
+            pageAssets.push(...candidatesFromCss(cssFile.bytes.toString("utf8"), cssFile.url));
+          } catch { /* stylesheet may be blocked or unavailable */ }
+        }
+        for (const asset of pageAssets) {
           if (!assets.has(asset.url)) assets.set(asset.url, { ...asset, sourcePage: crawledPage.url });
         }
         parsed.colors.forEach(color => colors.add(color));
@@ -218,10 +277,11 @@ export async function POST(request: NextRequest) {
       let total = 0; const imported: string[] = []; const failures: string[] = [];
       for (const item of body.selected) {
         try {
-          const file = await fetchPublic(item.url, MAX_IMAGE, true);
+          const fetched = await fetchPublic(item.url, MAX_IMAGE, true);
+          const file = fetched.type === "image/svg+xml" ? { ...fetched, bytes: sanitizeSvg(fetched.bytes) } : fetched;
           total += file.bytes.length;
           if (total > MAX_TOTAL) throw new Error("Samlet import kan maksimalt være 8 MB.");
-          const ext = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif" } as Record<string,string>)[file.type];
+          const ext = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif", "image/svg+xml": "svg" } as Record<string,string>)[file.type];
           const name = (item.name || "nettsidebilde").replace(/[^a-zA-Z0-9æøåÆØÅ._-]/gi, "_").slice(0, 80) + "." + ext;
           const path = org.id + "/" + crypto.randomUUID() + "-" + name;
           const { error: uploadError } = await supabase.storage.from("brand-assets").upload(path, file.bytes, { contentType: file.type, upsert: false });
