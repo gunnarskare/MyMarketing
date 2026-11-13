@@ -3,6 +3,8 @@ import { run } from "@openai/agents";
 import { requireOrg } from "@/lib/auth";
 import { ensureOpenAIConfigured } from "@/lib/ai/openai-client";
 import { createSpottAssistant } from "@/lib/ai/agents/spott-assistant";
+import { crawlWebsite } from "@/lib/brand-crawler";
+import { extractPageText, fetchPublicHtml } from "@/lib/brand-crawler-fetch";
 
 export const maxDuration = 30;
 
@@ -13,10 +15,7 @@ export async function POST(request: NextRequest) {
   try {
     context = await requireOrg();
   } catch {
-    return NextResponse.json(
-      { error: "Du må være logget inn og ha en tilknyttet bedrift." },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: "Du må være logget inn og ha en tilknyttet bedrift." }, { status: 401 });
   }
 
   let body: { message?: unknown };
@@ -30,10 +29,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Skriv en melding til Spott." }, { status: 400 });
   }
   if (body.message.length > MAX_MESSAGE_LENGTH) {
-    return NextResponse.json(
-      { error: `Meldingen kan maksimalt være ${MAX_MESSAGE_LENGTH} tegn.` },
-      { status: 413 },
-    );
+    return NextResponse.json({ error: `Meldingen kan maksimalt være ${MAX_MESSAGE_LENGTH} tegn.` }, { status: 413 });
   }
 
   try {
@@ -44,8 +40,21 @@ export async function POST(request: NextRequest) {
       .eq("org_id", org.id)
       .maybeSingle();
 
-    if (profileError) {
-      console.error("Spott assistant could not load brand profile:", profileError.message);
+    if (profileError) console.error("Spott assistant could not load brand profile:", profileError.message);
+
+    // Reuse the same bounded sitemap/link crawler as the Brand Intelligence feature.
+    // Crawl only the saved organization URL; never accept a URL from the chat message.
+    let websiteResearch: string | null = null;
+    if (profile?.website_url) {
+      try {
+        const crawl = await crawlWebsite(profile.website_url, fetchPublicHtml);
+        websiteResearch = crawl.pages
+          .map(page => `SIDE: ${page.url}\\n${extractPageText(page.html)}`)
+          .join("\\n\\n")
+          .slice(0, 30_000);
+      } catch (crawlError) {
+        console.warn("Spott website crawl failed:", crawlError instanceof Error ? crawlError.message : "Unknown error");
+      }
     }
 
     ensureOpenAIConfigured();
@@ -57,37 +66,26 @@ export async function POST(request: NextRequest) {
       products: profile?.products,
       avoid: profile?.avoid,
       language: profile?.language,
+      websiteResearch,
     });
 
     const result = await run(agent, body.message.trim());
-
     if (typeof result.finalOutput !== "string" || !result.finalOutput.trim()) {
-      return NextResponse.json(
-        { error: "Spott klarte ikke å lage et svar. Prøv igjen." },
-        { status: 502 },
-      );
+      return NextResponse.json({ error: "Spott klarte ikke å lage et svar. Prøv igjen." }, { status: 502 });
     }
 
     return NextResponse.json({
       answer: result.finalOutput,
       agent: result.lastAgent?.name ?? "Spott Marketing Assistant",
       organization: org.name,
+      websiteContext: websiteResearch ? "crawled" : "unavailable",
     });
   } catch (error) {
-    console.error(
-      "Spott assistant request failed:",
-      error instanceof Error ? error.message : "Unknown error",
-    );
+    console.error("Spott assistant request failed:", error instanceof Error ? error.message : "Unknown error");
     const message = error instanceof Error ? error.message : "";
     if (message.includes("OPENAI_API_KEY is not configured")) {
-      return NextResponse.json(
-        { error: "OpenAI er ikke konfigurert. Kontroller OPENAI_API_KEY i Vercel." },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: "OpenAI er ikke konfigurert. Kontroller OPENAI_API_KEY i Vercel." }, { status: 503 });
     }
-    return NextResponse.json(
-      { error: "Spott fikk ikke kontakt med AI-tjenesten. Prøv igjen om litt." },
-      { status: 502 },
-    );
+    return NextResponse.json({ error: "Spott fikk ikke kontakt med AI-tjenesten. Prøv igjen om litt." }, { status: 502 });
   }
 }
