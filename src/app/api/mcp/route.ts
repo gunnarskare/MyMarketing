@@ -105,10 +105,17 @@ async function runTool(name: string, args: Record<string, unknown>, context: Awa
       .select("website_url, tone, audience, products, avoid, language")
       .eq("org_id", org.id).maybeSingle();
     if (error) return toolText(`Kunne ikke hente merkevareprofilen: ${error.message}`, true);
-    const { data: typography } = await supabase.from("brand_typography").select("settings").eq("org_id", org.id).maybeSingle();\n    return toolText(JSON.stringify({ organization: org.name, profile: data ?? null, typography: typography?.settings ?? null, design_instructions: buildTypographyDesignInstructions(typography?.settings) }, null, 2));
+    const { data: typography } = await supabase.from("brand_typography").select("settings").eq("org_id", org.id).maybeSingle();
+    return toolText(JSON.stringify({ organization: org.name, profile: data ?? null, typography: typography?.settings ?? null, design_instructions: buildTypographyDesignInstructions(typography?.settings) }, null, 2));
   }
 
-  if (name === "get_brand_typography") {\n    const { data, error } = await supabase.from("brand_typography").select("settings, updated_at").eq("org_id", org.id).maybeSingle();\n    if (error) return toolText("Kunne ikke hente typografien. Kontroller at typografimigreringen er installert. " + error.message, true);\n    return toolText(JSON.stringify({ organization: org.name, typography: data?.settings ?? null, instruction: "Bruk de definerte fontene for de tilhørende rollene. Ikke erstatt dem med egne fontvalg uten godkjenning.", design_instructions: buildTypographyDesignInstructions(data?.settings), updated_at: data?.updated_at ?? null }, null, 2));\n  }\n\n  if (name === "update_brand_profile") {
+  if (name === "get_brand_typography") {
+    const { data, error } = await supabase.from("brand_typography").select("settings, updated_at").eq("org_id", org.id).maybeSingle();
+    if (error) return toolText("Kunne ikke hente typografien. Kontroller at typografimigreringen er installert. " + error.message, true);
+    return toolText(JSON.stringify({ organization: org.name, typography: data?.settings ?? null, instruction: "Bruk de definerte fontene for de tilhørende rollene. Ikke erstatt dem med egne fontvalg uten godkjenning.", design_instructions: buildTypographyDesignInstructions(data?.settings), updated_at: data?.updated_at ?? null }, null, 2));
+  }
+
+  if (name === "update_brand_profile") {
     const patch: Record<string, string | null> = {};
     for (const field of PROFILE_FIELDS) {
       if (!(field in args)) continue;
