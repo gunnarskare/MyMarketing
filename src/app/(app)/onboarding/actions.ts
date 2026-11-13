@@ -15,5 +15,5 @@ export async function createOrganization(formData: FormData) {
   if (error) {
     redirect("/onboarding?feil=lagring");
   }
-  redirect("/profil");
+  redirect("/kom-i-gang");
 }

@@ -1,11 +1,11 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { normalizeMime, storeBrandAsset, type AssetKind } from "@/lib/brand-assets";
 import { supabaseKey, supabaseUrl } from "@/lib/supabase/config";
 
 const PROTOCOL_VERSION = "2025-03-26";
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const PROFILE_FIELDS = ["website_url", "tone", "audience", "products", "avoid", "language"] as const;
-type ProfileField = (typeof PROFILE_FIELDS)[number];
 
 const tools = [
   {
@@ -165,20 +165,16 @@ async function runTool(name: string, args: Record<string, unknown>, context: Awa
     if (!isFont && !mimeType.startsWith("image/")) return toolText("Logoer og bilder må være bildefiler.", true);
     const buffer = Buffer.from(base64, "base64");
     if (!buffer.length || buffer.length > MAX_UPLOAD_BYTES) return toolText("Filen må være mellom 1 byte og 10 MB.", true);
-    const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const storagePath = `${org.id}/${crypto.randomUUID()}-${safeName}`;
-    const { error: uploadError } = await supabase.storage.from("brand-assets")
-      .upload(storagePath, buffer, { contentType: mimeType, upsert: false });
-    if (uploadError) return toolText(`Opplasting feilet: ${uploadError.message}. Kontroller at brand library-migreringen er installert.`, true);
-    const { data, error } = await supabase.from("brand_assets").insert({
-      org_id: org.id, kind, original_name: fileName, storage_path: storagePath,
-      mime_type: mimeType, file_size: buffer.length, is_primary: args.is_primary === true,
-    }).select("id, kind, original_name, mime_type, file_size, is_primary").single();
-    if (error) {
-      await supabase.storage.from("brand-assets").remove([storagePath]);
-      return toolText(`Filen ble lastet opp, men metadata kunne ikke lagres: ${error.message}`, true);
+    try {
+      const result = await storeBrandAsset(supabase, {
+        orgId: org.id, kind: String(kind) as AssetKind, name: fileName, bytes: buffer,
+        mime: normalizeMime(mimeType), isPrimary: args.is_primary === true && String(kind) === "logo",
+      });
+      if (result.status === "duplicate") return toolText(JSON.stringify({ success: true, duplicate: true, existing: result.existingName }));
+      return toolText(JSON.stringify({ success: true, asset_id: result.id }, null, 2));
+    } catch (error) {
+      return toolText(error instanceof Error ? error.message : "Opplastingen feilet.", true);
     }
-    return toolText(JSON.stringify({ success: true, asset: data }, null, 2));
   }
 
   return toolText(`Ukjent verktøy: ${name}`, true);

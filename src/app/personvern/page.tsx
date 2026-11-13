@@ -17,7 +17,7 @@ export default function PrivacyPage() {
           <h1 className="text-[clamp(2.25rem,9vw,4rem)] leading-none font-black tracking-[-0.03em]">
             Personvern&shy;erklæring
           </h1>
-          <p className="mt-4 text-ink-soft">Sist oppdatert 13. november 2026</p>
+          <p className="mt-4 text-ink-soft">Sist oppdatert 14. november 2026</p>
 
           <div className="legal mt-10">
             <p>
@@ -42,8 +42,17 @@ export default function PrivacyPage() {
                 skriver dem inn.
               </li>
               <li>
+                <strong>Filer:</strong> logoer, bilder og fonter du laster opp eller henter fra
+                nettsiden deres. Bilder kan vise personer.
+              </li>
+              <li>
+                <strong>Merkevareanalyse:</strong> tekst Spott leser fra de offentlige sidene på
+                nettsiden dere oppgir, og analysen som lages av den.
+              </li>
+              <li>
                 <strong>Teknisk:</strong> IP-adresse, tidspunkt og hvilken nettleser du bruker. Dette
-                havner i serverlogger når du besøker nettsiden.
+                havner i serverlogger når du besøker nettsiden. Vi teller også hvor mange AI-oppgaver
+                hver bedrift kjører per døgn, for å holde bruken innenfor grensene.
               </li>
             </ul>
             <p>
@@ -57,6 +66,11 @@ export default function PrivacyPage() {
                 <strong>Levere tjenesten:</strong> opprette kontoen din, logge deg inn og lagre det
                 du legger inn. Grunnlaget er avtalen med deg (personvernforordningen artikkel 6 nr. 1
                 bokstav b).
+              </li>
+              <li>
+                <strong>Lage analyse og innhold med AI:</strong> profilen, teksten fra nettsiden og
+                analysen sendes til en AI-tjeneste som skriver forslag. Grunnlaget er avtalen med deg.
+                Forslagene er bare forslag til du har godkjent dem.
               </li>
               <li>
                 <strong>Sende nødvendig e-post:</strong> for eksempel lenken som bekrefter kontoen
@@ -87,9 +101,18 @@ export default function PrivacyPage() {
                 <strong>Vercel</strong> drifter nettsiden. Koden kjører i Stockholm. Tekniske
                 opplysninger, som IP-adresser i logger, kan bli behandlet utenfor EØS.
               </li>
+              <li>
+                <strong>OpenAI</strong> lager merkevareanalysen og tekstforslagene. OpenAI får
+                profilen, teksten fra nettsiden og analysen, men ikke passordet ditt. Etter OpenAIs
+                vilkår brukes opplysninger som sendes via API-et, som standard ikke til å trene modellene.
+              </li>
+              <li>
+                <strong>Google Fonts</strong>: når du forhåndsviser fonter under Typografi, henter
+                nettleseren fontfilene fra Google. Da ser Google IP-adressen din.
+              </li>
             </ul>
             <p>
-              Begge er amerikanske selskaper. Når personopplysninger overføres ut av EØS, skjer det
+              Alle fire er amerikanske selskaper. Når personopplysninger overføres ut av EØS, skjer det
               med et overføringsgrunnlag som personvernforordningen godtar, som EUs standard
               personvernbestemmelser.
             </p>

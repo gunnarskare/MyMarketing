@@ -1,49 +1,191 @@
 "use client";
+
 import Link from "next/link";
-import {useMemo,useState,useTransition} from "react";
-import {saveAssistantAnswer,submitBrandRequests} from "./actions";
-import type {BrandProfile} from "@/lib/brand-profile";
-type Asset={id:string;kind:string;original_name:string};
-type Step={id:string;title:string;prompt:string;field?:"website_url"|"tone"|"audience"|"products"|"avoid";placeholder?:string;options?:string[]};
-const steps:Step[]=[
-{id:"website",title:"Først: hvor finner vi bedriften?",prompt:"Har bedriften en nettside? Da kan vi bruke den som utgangspunkt for å forstå virksomheten.",field:"website_url",placeholder:"www.dinbedrift.no"},
-{id:"offer",title:"Hva tilbyr dere?",prompt:"Fortell kort hva dere selger eller hvilke tjenester dere leverer. Hva bør kundene huske dere for?",field:"products",placeholder:"Vi hjelper små bedrifter med …"},
-{id:"audience",title:"Hvem ønsker dere å nå?",prompt:"Hvem er de viktigste kundene deres? Det kan være privatpersoner, bedrifter eller en bestemt bransje.",field:"audience",placeholder:"Vi ønsker å nå …"},
-{id:"voice",title:"Hvordan skal merkevaren høres ut?",prompt:"Velg et uttrykk, eller beskriv med egne ord. Vi kan finjustere dette senere.",field:"tone",options:["Vennlig og folkelig","Profesjonell og faglig","Moderne og energisk","Eksklusiv og elegant","Leken og kreativ"]},
-{id:"avoid",title:"Er det noe vi skal styre unna?",prompt:"Ord, uttrykk, farger eller påstander dere ikke ønsker å bruke. Dette er valgfritt.",field:"avoid",placeholder:"Vi ønsker ikke å virke …"},
-{id:"visual",title:"La oss se på det visuelle uttrykket",prompt:"Har dere allerede logo, farger, skrifttyper eller bilder? Vi kan bruke det dere har, eller hjelpe dere å utvikle en ny visuell identitet.",options:["Vi har logo og visuell profil","Vi har logo, men trenger resten","Vi trenger en helt ny visuell profil","Jeg er usikker – hjelp meg å velge"]}
+import { useState, useTransition } from "react";
+import { Notice } from "@/components/notice";
+import type { BrandProfile } from "@/lib/brand-profile";
+import { saveAssistantAnswer, submitBrandRequests } from "./actions";
+
+type Asset = { id: string; kind: string; original_name: string };
+type FieldName = "website_url" | "tone" | "audience" | "products" | "avoid";
+type Step = { id: string; title: string; prompt: string; field?: FieldName; placeholder?: string; options?: string[] };
+
+const STEPS: Step[] = [
+  { id: "website", title: "Hvor finner vi bedriften?", prompt: "Har bedriften en nettside? Spott leser den for å forstå hva dere driver med.", field: "website_url", placeholder: "dinbedrift.no" },
+  { id: "offer", title: "Hva tilbyr dere?", prompt: "Fortell kort hva dere selger eller leverer, og hva kundene bør huske dere for.", field: "products", placeholder: "Vi baker brød og leverer lunsj til bedrifter i sentrum …" },
+  { id: "audience", title: "Hvem vil dere nå?", prompt: "Hvem er de viktigste kundene? Privatpersoner, bedrifter eller en bestemt bransje.", field: "audience", placeholder: "Folk som bor og jobber i sentrum …" },
+  { id: "voice", title: "Hvordan skal dere høres ut?", prompt: "Velg et uttrykk, eller skriv med egne ord. Det kan justeres senere.", field: "tone", options: ["Vennlig og folkelig", "Profesjonell og faglig", "Moderne og energisk", "Eksklusiv og elegant", "Leken og kreativ"] },
+  { id: "avoid", title: "Er det noe Spott skal styre unna?", prompt: "Ord, temaer eller påstander dere ikke vil bruke. Valgfritt.", field: "avoid", placeholder: "Vi lover aldri laveste pris …" },
 ];
-export function BrandAssistant({orgName,profile,assets}:{orgName:string;profile:BrandProfile|null;assets:Asset[]}) {
- const [stepIndex,setStepIndex]=useState(0),[answers,setAnswers]=useState<Record<string,string>>({}),[draft,setDraft]=useState(""),[requests,setRequests]=useState<string[]>([]),[message,setMessage]=useState(""),[done,setDone]=useState(false);
- const [pending,startTransition]=useTransition();
- const [submitted,setSubmitted]=useState(false);
- const step=steps[stepIndex];
- const existing=useMemo(()=>({website:profile?.website_url??"",offer:profile?.products??"",audience:profile?.audience??"",voice:profile?.tone??"",avoid:profile?.avoid??""}),[profile]);
- const currentValue=answers[step.id]??(step.field?existing[step.id as keyof typeof existing]:"");
- const progress=done?100:Math.round(stepIndex/steps.length*100);
- const hasLogo=assets.some(a=>a.kind==="logo"),hasFont=assets.some(a=>a.kind==="font"),hasImages=assets.some(a=>a.kind==="image");
- function continueWith(value:string){
-  setMessage("");
-  if(step.field){startTransition(async()=>{const result=await saveAssistantAnswer(step.field!,value);if(!result.ok){setMessage(result.message??"Noe gikk galt.");return;}setAnswers(old=>({...old,[step.id]:value}));setDraft("");if(stepIndex===steps.length-1)setDone(true);else setStepIndex(i=>i+1);});}
-  else {setAnswers(old=>({...old,[step.id]:value}));setDraft("");if(stepIndex===steps.length-1)setDone(true);else setStepIndex(i=>i+1);}
- }
- function toggleRequest(item:string){setRequests(old=>old.includes(item)?old.filter(x=>x!==item):[...old,item]);}
- const choices=["Lage en logo eller flere logovarianter","Utvikle fargepalett og fargeuttrykk","Finne skrifttyper som passer merkevaren","Lage en bildestil og visuelle eksempler","Lage en komplett merkevareguide"];
- return <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
- <section className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_24px_60px_-48px_rgb(10_20_40/45%)]">
- <div className="bg-ink px-6 py-6 text-white sm:px-8"><div className="flex items-center gap-3"><span className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-xl">✳</span><div><p className="text-sm font-semibold">Spott-assistenten</p><p className="text-xs text-white/65">{orgName} · Merkevareoppsett</p></div></div><div className="mt-6 flex items-center justify-between text-xs text-white/70"><span>{done?"Kartlegging fullført":"Steg "+(stepIndex+1)+" av "+steps.length}</span><span>{progress}%</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-spot transition-all" style={{width:progress+"%"}}/></div></div>
- <div className="p-6 sm:p-8">
- {!done&&step?<><p className="text-xs font-bold tracking-[0.15em] text-spot uppercase">SPOTT SPØR</p><h2 className="mt-3 text-2xl font-semibold tracking-tight">{step.title}</h2><p className="mt-3 max-w-xl leading-relaxed text-ink-soft">{step.prompt}</p>
- {step.options?<div className="mt-6 grid gap-2">{step.options.map(option=><button key={option} type="button" onClick={()=>setDraft(option)} className={"rounded-2xl border px-4 py-4 text-left text-sm font-semibold transition-colors "+(draft===option?"border-ink bg-mist":"border-line hover:bg-mist/60")}>{option}<span className="float-right text-spot">↗</span></button>)}</div>:<textarea value={draft||currentValue} onChange={e=>setDraft(e.target.value)} rows={4} placeholder={step.placeholder} className="mt-6 w-full rounded-2xl border border-line bg-paper px-4 py-3 text-sm outline-none focus:border-ink"/>}
- {step.id==="visual"?<div className="mt-5 rounded-2xl bg-mist/70 p-4"><p className="text-sm font-semibold">Dette har dere allerede lastet opp</p><div className="mt-3 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-white px-3 py-2">{hasLogo?"✓":"○"} Logo</span><span className="rounded-full bg-white px-3 py-2">{hasFont?"✓":"○"} Skrifttyper</span><span className="rounded-full bg-white px-3 py-2">{hasImages?"✓":"○"} Bilder</span></div><Link href="/profil#brand-library-title" className="mt-3 inline-block text-sm font-semibold underline underline-offset-4">Åpne merkevarebiblioteket ↗</Link></div>:null}
- {message?<p role="alert" className="mt-4 text-sm text-red-700">{message}</p>:null}
- <div className="mt-7 flex flex-wrap items-center justify-between gap-3"><button type="button" disabled={stepIndex===0||pending} onClick={()=>{setMessage("");setStepIndex(i=>Math.max(i-1,0));setDraft("");}} className="rounded-full px-4 py-3 text-sm font-semibold text-ink-soft underline underline-offset-4">Tilbake</button><div className="flex gap-2"><button type="button" disabled={pending} onClick={()=>{setDraft("");if(stepIndex===steps.length-1)setDone(true);else setStepIndex(i=>i+1);}} className="rounded-full border border-line px-5 py-3 text-sm font-semibold">Hopp over</button><button type="button" disabled={pending||(!draft.trim()&&!currentValue.trim())} onClick={()=>continueWith(draft||currentValue)} className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white disabled:opacity-40">{pending?"Lagrer …":"Fortsett"}</button></div></div>
- </>:done?<><p className="text-xs font-bold tracking-[0.15em] text-ok uppercase">GODT JOBBET</p><h2 className="mt-3 text-2xl font-semibold">Dere har et godt utgangspunkt!</h2><p className="mt-3 leading-relaxed text-ink-soft">Nå kan vi ta tak i det visuelle uttrykket. Velg hva dere ønsker at Spott skal hjelpe med. Dere bestemmer hva som skal lages.</p>
- <div className="mt-6 grid gap-3 sm:grid-cols-2">{choices.map(item=><label key={item} className={"flex cursor-pointer items-start gap-3 rounded-2xl border p-4 text-sm font-semibold "+(requests.includes(item)?"border-ink bg-mist":"border-line")}><input type="checkbox" checked={requests.includes(item)} onChange={()=>toggleRequest(item)} className="mt-0.5 accent-[#dc2f25]"/>{item}</label>)}</div>
- <div className="mt-6 rounded-2xl border border-line p-4"><p className="font-semibold">Hva ønsker dere å gjøre med eksisterende filer?</p><p className="mt-1 text-sm text-ink-soft">Last opp logoer, bilder og fonter, eller gå videre uten dem.</p><Link href="/profil#brand-library-title" className="mt-3 inline-flex rounded-full border border-line px-4 py-2 text-sm font-semibold">Åpne filbiblioteket ↗</Link></div>
- <button type="button" disabled={pending||submitted||requests.length===0} onClick={()=>startTransition(async()=>{setMessage("");const result=await submitBrandRequests(requests);if(!result.ok){setMessage(result.message??"Kunne ikke sende ønskene.");return;}setSubmitted(true);setMessage("Takk! Ønskene er registrert på bedriftskontoen. Spott-teamet kan følge opp leveransene.");})} className="mt-6 w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white disabled:opacity-40">{pending?"Sender …":submitted?"Ønskene er sendt":"Send inn ønskene mine"}</button>{message?<p role="status" className="mt-3 text-sm text-ink-soft">{message}</p>:null}
- </>:null}
- </div></section>
- <aside className="flex flex-col gap-4"><div className="rounded-3xl border border-line bg-white p-5"><p className="text-xs font-bold tracking-[0.15em] text-spot uppercase">STATUS</p><h3 className="mt-2 text-lg font-semibold">Merkevareprofil</h3><ul className="mt-4 space-y-3 text-sm">{[{label:"Nettside",ok:!!profile?.website_url},{label:"Produkter og tjenester",ok:!!profile?.products},{label:"Målgruppe",ok:!!profile?.audience},{label:"Tone",ok:!!profile?.tone},{label:"Logo",ok:hasLogo},{label:"Skrifttyper",ok:hasFont},{label:"Bilder",ok:hasImages}].map(row=><li key={row.label} className="flex items-center justify-between gap-2"><span className="text-ink-soft">{row.label}</span><span className={row.ok?"font-semibold text-ok":"font-semibold text-ink-muted"}>{row.ok?"På plass":"Mangler"}</span></li>)}</ul><Link href="/profil" className="mt-5 inline-flex text-sm font-semibold underline underline-offset-4">Se hele profilen ↗</Link></div><div className="rounded-3xl bg-mist/80 p-5"><p className="font-semibold">Du bestemmer</p><p className="mt-2 text-sm leading-relaxed text-ink-soft">Spott foreslår og hjelper til. Ingenting publiseres eller endres visuelt uten at du godkjenner det.</p></div></aside>
- </div>;
+
+const SERVICES = [
+  "Lage en logo eller flere logovarianter",
+  "Utvikle fargepalett og fargeuttrykk",
+  "Finne skrifttyper som passer merkevaren",
+  "Lage en bildestil og visuelle eksempler",
+  "Lage en komplett merkevareguide",
+];
+
+const FIELD_OF: Record<string, keyof BrandProfile> = { website: "website_url", offer: "products", audience: "audience", voice: "tone", avoid: "avoid" };
+
+export function BrandAssistant({ orgName, profile, assets, hasTypography }: { orgName: string; profile: BrandProfile | null; assets: Asset[]; hasTypography: boolean }) {
+  const [stepIndex, setStepIndex] = useState(0);
+  const [saved, setSaved] = useState<Record<string, string>>(() =>
+    Object.fromEntries(STEPS.map((s) => [s.id, String(profile?.[FIELD_OF[s.id]] ?? "")])),
+  );
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [done, setDone] = useState(false);
+  const [requests, setRequests] = useState<string[]>([]);
+  const [submitted, setSubmitted] = useState(false);
+  const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const step = STEPS[stepIndex];
+  const value = drafts[step.id] ?? saved[step.id] ?? "";
+  const progress = done ? 100 : Math.round((stepIndex / STEPS.length) * 100);
+  const hasLogo = assets.some((a) => a.kind === "logo");
+  const hasImages = assets.some((a) => a.kind === "image");
+  const hasFonts = hasTypography || assets.some((a) => a.kind === "font");
+
+  function next() {
+    setMessage(null);
+    if (stepIndex === STEPS.length - 1) setDone(true);
+    else setStepIndex((i) => i + 1);
+  }
+
+  function saveAndContinue() {
+    const field = step.field;
+    if (!field) return next();
+    if (value === saved[step.id]) return next();
+    startTransition(async () => {
+      const result = await saveAssistantAnswer(field, value);
+      if (!result.ok) {
+        setMessage({ tone: "error", text: result.message ?? "Noe gikk galt." });
+        return;
+      }
+      setSaved((current) => ({ ...current, [step.id]: value.trim() }));
+      setDrafts((current) => { const copy = { ...current }; delete copy[step.id]; return copy; });
+      next();
+    });
+  }
+
+  const status = [
+    { label: "Nettside", ok: Boolean(saved.website) },
+    { label: "Tilbud", ok: Boolean(saved.offer) },
+    { label: "Målgruppe", ok: Boolean(saved.audience) },
+    { label: "Tone", ok: Boolean(saved.voice) },
+    { label: "Logo", ok: hasLogo },
+    { label: "Bilder", ok: hasImages },
+    { label: "Fonter", ok: hasFonts },
+  ];
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <section className="rounded-3xl border border-line" aria-labelledby="veiviser-tittel">
+        <div className="border-b border-line p-5 sm:p-7">
+          <div className="flex items-center justify-between text-sm text-ink-soft">
+            <span>{done ? "Ferdig" : `Spørsmål ${stepIndex + 1} av ${STEPS.length}`}</span>
+            <span>{orgName}</span>
+          </div>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-mist" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label="Fremdrift">
+            <div className="h-full rounded-full bg-spot transition-[width]" style={{ width: progress + "%" }} />
+          </div>
+        </div>
+
+        <div className="p-5 sm:p-7">
+          {!done ? (
+            <>
+              <h2 id="veiviser-tittel" className="text-2xl font-bold tracking-tight">{step.title}</h2>
+              <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">{step.prompt}</p>
+              <label htmlFor="svar" className="sr-only">{step.title}</label>
+              {step.options ? (
+                <div className="mt-5 flex flex-col gap-3">
+                  <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Forslag">
+                    {step.options.map((option) => (
+                      <button key={option} type="button" aria-pressed={value === option} onClick={() => setDrafts((c) => ({ ...c, [step.id]: option }))} className={"rounded-2xl border px-4 py-3 text-left text-sm font-semibold " + (value === option ? "border-ink bg-mist" : "border-line hover:border-ink")}>
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                  <textarea id="svar" value={value} onChange={(e) => setDrafts((c) => ({ ...c, [step.id]: e.target.value }))} rows={2} placeholder="Eller beskriv med egne ord …" className="w-full rounded-2xl border border-line bg-paper px-4 py-3 text-base" />
+                </div>
+              ) : step.field === "website_url" ? (
+                <input id="svar" type="text" inputMode="url" autoComplete="url" value={value} onChange={(e) => setDrafts((c) => ({ ...c, [step.id]: e.target.value }))} placeholder={step.placeholder} className="mt-5 w-full rounded-2xl border border-line bg-paper px-4 py-3 text-base" />
+              ) : (
+                <textarea id="svar" value={value} onChange={(e) => setDrafts((c) => ({ ...c, [step.id]: e.target.value }))} rows={4} placeholder={step.placeholder} className="mt-5 w-full rounded-2xl border border-line bg-paper px-4 py-3 text-base" />
+              )}
+              {message ? <div className="mt-4"><Notice tone={message.tone}>{message.text}</Notice></div> : null}
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <button type="button" disabled={stepIndex === 0 || pending} onClick={() => { setMessage(null); setStepIndex((i) => Math.max(0, i - 1)); }} className="text-sm font-semibold text-ink-soft underline underline-offset-4 disabled:opacity-40">
+                  Tilbake
+                </button>
+                <div className="flex gap-2">
+                  <button type="button" disabled={pending} onClick={next} className="rounded-full border border-line px-5 py-2.5 text-sm font-semibold">Hopp over</button>
+                  <button type="button" disabled={pending} onClick={saveAndContinue} className="rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-paper disabled:opacity-50">
+                    {pending ? "Lagrer …" : "Lagre og fortsett"}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 id="veiviser-tittel" className="text-2xl font-bold tracking-tight">Profilen er på plass</h2>
+              <p className="mt-2 leading-relaxed text-ink-soft">
+                Neste steg er merkevareanalysen. Spott leser nettsiden og skriver hva den forstår om bedriften, og du retter det som ikke stemmer.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link href="/merkevare" className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper">Til merkevareanalysen</Link>
+                <Link href="/profil#hent-fra-nettside" className="rounded-full border border-ink px-5 py-2.5 text-sm font-semibold">Hent logo og bilder</Link>
+              </div>
+
+              <div className="mt-8 border-t border-line pt-6">
+                <h3 className="font-bold">Trenger dere hjelp med det visuelle?</h3>
+                <p className="mt-1 text-sm text-ink-soft">Kryss av for det dere ønsker hjelp med.</p>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {SERVICES.map((item) => (
+                    <label key={item} className={"flex cursor-pointer items-start gap-3 rounded-2xl border p-4 text-sm font-semibold " + (requests.includes(item) ? "border-ink bg-mist" : "border-line")}>
+                      <input type="checkbox" checked={requests.includes(item)} onChange={() => setRequests((c) => (c.includes(item) ? c.filter((x) => x !== item) : [...c, item]))} className="mt-0.5 accent-spot" />
+                      {item}
+                    </label>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  disabled={pending || submitted || requests.length === 0}
+                  onClick={() => startTransition(async () => {
+                    const result = await submitBrandRequests(requests);
+                    if (!result.ok) return setMessage({ tone: "error", text: result.message ?? "Kunne ikke sende ønskene." });
+                    setSubmitted(true);
+                    setMessage({ tone: "success", text: "Takk! Ønskene er registrert på kontoen." });
+                  })}
+                  className="mt-4 rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-paper disabled:opacity-40"
+                >
+                  {pending ? "Sender …" : submitted ? "Sendt" : "Send ønskene"}
+                </button>
+                {message ? <div className="mt-4"><Notice tone={message.tone}>{message.text}</Notice></div> : null}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      <aside className="flex flex-col gap-4">
+        <div className="rounded-3xl border border-line p-5">
+          <h3 className="font-bold">Status</h3>
+          <ul className="mt-3 flex flex-col gap-2 text-sm">
+            {status.map((row) => (
+              <li key={row.label} className="flex items-center justify-between gap-2">
+                <span className="text-ink-soft">{row.label}</span>
+                <span className={"font-semibold " + (row.ok ? "text-ok" : "text-ink-soft")}>{row.ok ? "På plass" : "Mangler"}</span>
+              </li>
+            ))}
+          </ul>
+          <Link href="/profil" className="mt-4 inline-block text-sm font-semibold underline underline-offset-4">Se hele profilen</Link>
+        </div>
+        <p className="rounded-3xl bg-mist p-5 text-sm leading-relaxed text-ink-soft">
+          Spott foreslår, du bestemmer. Ingenting publiseres uten at du har godkjent det.
+        </p>
+      </aside>
+    </div>
+  );
 }

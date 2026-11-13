@@ -1,0 +1,2 @@
+-- Kjørt direkte i databasen 13. november; lagt inn i repoet i ettertid, uendret.
+alter table public.brand_analyses drop constraint if exists brand_analyses_status_check; alter table public.brand_analyses add constraint brand_analyses_status_check check (status in ('ready','needs_review','approved')); alter table public.brand_analyses add column if not exists approved_at timestamptz; alter table public.brand_analyses add column if not exists approved_by uuid references auth.users(id) on delete set null;

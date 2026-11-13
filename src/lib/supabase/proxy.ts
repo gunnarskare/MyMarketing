@@ -6,7 +6,7 @@ import { isSupabaseConfigured, supabaseKey, supabaseUrl } from "./config";
 const PUBLIC_PREFIXES = ["/login", "/auth", "/personvern"];
 /** Sider innloggede ikke trenger: de sendes rett til appen. */
 const GUEST_ONLY_PATHS = ["/", "/login"];
-const APP_HOME = "/profil";
+const APP_HOME = "/dashboard";
 
 function isPublicPath(pathname: string): boolean {
   return pathname === "/" || PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

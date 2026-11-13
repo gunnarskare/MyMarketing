@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       confirmed = !error;
     }
     if (confirmed) {
-      target.pathname = "/profil";
+      target.pathname = "/dashboard";
       return NextResponse.redirect(target);
     }
   }

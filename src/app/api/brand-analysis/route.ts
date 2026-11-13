@@ -1,50 +1,85 @@
 import { NextResponse } from "next/server";
-import { requireOrg } from "@/lib/auth";
+import { loadBrandAnalysis, profileHash, regenerateBrandAnalysis, type ProfileInput } from "@/lib/ai/brand-analysis-cache";
+import { describePath } from "@/lib/ai/brand-analysis-labels";
 import { brandAnalysisSchema } from "@/lib/ai/brand-analysis-schema";
+import { claimQuota } from "@/lib/ai/quota";
+import { requireOrg } from "@/lib/auth";
+
+async function context() {
+  try {
+    return await requireOrg();
+  } catch {
+    return null;
+  }
+}
+
+async function readProfile(ctx: NonNullable<Awaited<ReturnType<typeof context>>>): Promise<ProfileInput | null> {
+  const { data, error } = await ctx.supabase.from("brand_profiles")
+    .select("website_url,tone,audience,products,avoid,language").eq("org_id", ctx.org.id).maybeSingle();
+  if (error) throw new Error("Kunne ikke lese merkevareprofilen.");
+  return data;
+}
 
 export async function GET() {
-  let context: Awaited<ReturnType<typeof requireOrg>>;
-  try { context = await requireOrg(); } catch { return NextResponse.json({ error: "Du må være logget inn." }, { status: 401 }); }
-  const { data, error } = await context.supabase.from("brand_analyses")
-    .select("analysis,status,analyzed_at,website_url,source_pages,model,approved_at")
-    .eq("org_id", context.org.id).maybeSingle();
-  if (error) return NextResponse.json({ error: "Kunne ikke hente merkevareanalysen." }, { status: 500 });
-  return NextResponse.json({ analysis: data?.analysis ?? null, status: data?.status ?? "not_created", analyzedAt: data?.analyzed_at ?? null, websiteUrl: data?.website_url ?? null, sourcePages: data?.source_pages ?? [], model: data?.model ?? null, approvedAt: data?.approved_at ?? null });
+  const ctx = await context();
+  if (!ctx) return NextResponse.json({ error: "Du må være logget inn." }, { status: 401 });
+  try {
+    return NextResponse.json(await loadBrandAnalysis(ctx.supabase, ctx.org, await readProfile(ctx)));
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Kunne ikke hente analysen." }, { status: 500 });
+  }
 }
 
+/** Lager en ny analyse fra nettsiden. Bare når brukeren ber om det, og innenfor dagens kvote. */
 export async function POST() {
-  let context: Awaited<ReturnType<typeof requireOrg>>;
-  try { context = await requireOrg(); } catch { return NextResponse.json({ error: "Du må være logget inn." }, { status: 401 }); }
+  const ctx = await context();
+  if (!ctx) return NextResponse.json({ error: "Du må være logget inn." }, { status: 401 });
   try {
-    const { supabase, org } = context;
-    const { data: profile, error } = await supabase.from("brand_profiles").select("website_url,tone,audience,products,avoid,language").eq("org_id", org.id).maybeSingle();
-    if (error) throw new Error("Kunne ikke lese merkevareprofilen.");
-    const { getOrCreateBrandAnalysis } = await import("@/lib/ai/brand-analysis-cache");
-    const result = await getOrCreateBrandAnalysis(supabase, org, profile, true);
-    if (!result.analysis) return NextResponse.json({ error: "Legg inn en nettside i merkevareprofilen før analysen kjøres." }, { status: 400 });
-    return NextResponse.json({ analysis: result.analysis, status: result.status, analyzedAt: result.analyzedAt });
+    const profile = await readProfile(ctx);
+    if (!profile?.website_url) return NextResponse.json({ error: "Legg inn nettsiden i profilen før analysen lages." }, { status: 400 });
+    const quota = await claimQuota(ctx.supabase, ctx.org.id, "brand_analysis");
+    if (!quota.allowed) return NextResponse.json({ error: quota.message }, { status: 429 });
+    const result = await regenerateBrandAnalysis(ctx.supabase, ctx.org, profile);
+    return NextResponse.json({ ...result, remaining: quota.remaining });
   } catch (error) {
     console.error("Brand analysis refresh failed:", error instanceof Error ? error.message : "Unknown error");
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Kunne ikke oppdatere analysen." }, { status: 502 });
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("OPENAI_API_KEY")) return NextResponse.json({ error: "AI-tjenesten er ikke satt opp på serveren." }, { status: 503 });
+    return NextResponse.json({ error: message || "Kunne ikke lage analysen." }, { status: 502 });
   }
 }
 
+/** Lagrer endringer fra redigeringen, og eventuelt godkjenning. */
 export async function PATCH(request: Request) {
-  let context: Awaited<ReturnType<typeof requireOrg>>;
-  try { context = await requireOrg(); } catch { return NextResponse.json({ error: "Du må være logget inn." }, { status: 401 }); }
+  const ctx = await context();
+  if (!ctx) return NextResponse.json({ error: "Du må være logget inn." }, { status: 401 });
   let body: { analysis?: unknown; approved?: unknown };
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Ugyldig JSON." }, { status: 400 }); }
-  const parsed = brandAnalysisSchema.safeParse(body.analysis);
-  if (!parsed.success) return NextResponse.json({ error: "Analysen har ugyldige eller manglende felt. Kontroller endringene." }, { status: 400 });
-  if (typeof body.approved !== "boolean") return NextResponse.json({ error: "Velg om analysen skal godkjennes." }, { status: 400 });
-  const now = new Date().toISOString();
-  const { error } = await context.supabase.from("brand_analyses").update({
-    analysis: parsed.data, status: body.approved ? "approved" : "needs_review",
-    approved_at: body.approved ? now : null, approved_by: body.approved ? context.userId : null, updated_at: now
-  }).eq("org_id", context.org.id);
-  if (error) {
-    console.error("Brand analysis save failed:", error.message);
-    return NextResponse.json({ error: "Kunne ikke lagre merkevareanalysen." }, { status: 500 });
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Ugyldig forespørsel." }, { status: 400 });
   }
-  return NextResponse.json({ status: body.approved ? "approved" : "needs_review", approvedAt: body.approved ? now : null });
+  if (typeof body.approved !== "boolean") return NextResponse.json({ error: "Velg om analysen skal godkjennes." }, { status: 400 });
+  const parsed = brandAnalysisSchema.safeParse(body.analysis);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return NextResponse.json({ error: `Sjekk feltet ${describePath(issue?.path ?? [])}. Verdien er ikke gyldig.` }, { status: 400 });
+  }
+  const now = new Date().toISOString();
+  // Godkjenner du analysen, har du sett på den opp mot profilen slik den er nå.
+  // Da er den ikke lenger utdatert, selv om profilen er endret etter at den ble laget.
+  const approvedFor = body.approved ? profileHash(ctx.org.name, await readProfile(ctx).catch(() => null)) : undefined;
+  const { data, error } = await ctx.supabase.from("brand_analyses").update({
+    analysis: parsed.data,
+    status: body.approved ? "approved" : "needs_review",
+    approved_at: body.approved ? now : null,
+    approved_by: body.approved ? ctx.userId : null,
+    updated_at: now,
+    ...(approvedFor ? { profile_hash: approvedFor } : {}),
+  }).eq("org_id", ctx.org.id).select("id");
+  if (error || !data?.length) {
+    if (error) console.error("Brand analysis save failed:", error.message);
+    return NextResponse.json({ error: "Kunne ikke lagre analysen." }, { status: 500 });
+  }
+  return NextResponse.json({ status: body.approved ? "approved" : "needs_review", approvedAt: body.approved ? now : null, stale: body.approved ? false : undefined });
 }

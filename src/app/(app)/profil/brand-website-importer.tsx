@@ -1,61 +1,200 @@
 "use client";
 
 import { useState } from "react";
+import { Notice } from "@/components/notice";
+import { ASSETS_CHANGED } from "./brand-library";
 
-type Candidate = { url: string; name: string; category: string };
-type Analysis = { website: string; assets: (Candidate & { sourcePage?: string })[]; colors: string[]; fonts: string[]; pages?: { url: string; depth: number }[]; failures?: { url: string; error: string }[]; limits?: { maxPages: number; maxDepth: number } };
+type Candidate = { url: string; name: string; category: string; sourcePage?: string };
+type Analysis = {
+  website: string;
+  assets: Candidate[];
+  colors: { hex: string; count: number; neutral: boolean }[];
+  fonts: string[];
+  pages: { url: string; depth: number }[];
+  failures: { url: string; error: string }[];
+  stoppedEarly?: boolean;
+};
+type Message = { tone: "success" | "error" | "info"; text: string };
 
-export function BrandWebsiteImporter() {
-  const [website, setWebsite] = useState("");
+const MAX_IMPORT = 15;
+
+export function BrandWebsiteImporter({ defaultWebsite }: { defaultWebsite: string | null }) {
+  const [website, setWebsite] = useState(defaultWebsite?.replace(/^https?:\/\//, "").replace(/\/$/, "") ?? "");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState<"analyze" | "import" | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [failures, setFailures] = useState<string[]>([]);
 
   async function analyze() {
-    setBusy(true); setError(""); setMessage(""); setAnalysis(null); setSelected([]);
+    setBusy("analyze");
+    setMessages([]);
+    setFailures([]);
+    setAnalysis(null);
+    setSelected([]);
     try {
-      const trimmedWebsite = website.trim();
-      const normalizedWebsite = /^https?:\/\//i.test(trimmedWebsite) ? trimmedWebsite : "https://" + trimmedWebsite;
-      const response = await fetch("/api/brand-intelligence", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "analyze", website: normalizedWebsite }) });
+      const response = await fetch("/api/brand-intelligence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "analyze", website }),
+      });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Kunne ikke analysere nettsiden.");
-      setAnalysis(data); setSelected(data.assets.map((a: Candidate) => a.url));
-      if (!data.assets.length) setMessage("Fant ingen bilder i støttede formater. Farger og skrifttyper ble likevel analysert.");
-    } catch (e) { setError(e instanceof Error ? e.message : "Noe gikk galt."); }
-    finally { setBusy(false); }
+      if (!response.ok) throw new Error(data.error || "Kunne ikke lese nettsiden.");
+      setAnalysis(data);
+      // Logoer er det folk oftest vil ha. Resten velger de selv.
+      setSelected(data.assets.filter((a: Candidate) => a.category === "Logo").slice(0, MAX_IMPORT).map((a: Candidate) => a.url));
+      if (!data.assets.length) setMessages([{ tone: "info", text: "Fant ingen bilder i formater vi kan hente. Farger og fonter står under." }]);
+    } catch (error) {
+      setMessages([{ tone: "error", text: error instanceof Error ? error.message : "Noe gikk galt." }]);
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function importSelected() {
     if (!analysis || !selected.length) return;
-    setBusy(true); setError(""); setMessage("");
+    setBusy("import");
+    setMessages([]);
+    setFailures([]);
     try {
-      const response = await fetch("/api/brand-intelligence", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "import", selected: analysis.assets.filter(a => selected.includes(a.url)) }) });
+      const response = await fetch("/api/brand-intelligence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "import",
+          selected: analysis.assets.filter((a) => selected.includes(a.url)).map(({ url, name, category }) => ({ url, name, category })),
+        }),
+      });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Importen feilet.");
-      setMessage(data.count + " filer er importert til merkevarebiblioteket." + (data.failures?.length ? " " + data.failures.length + " filer ble hoppet over." : ""));
-      if (data.failures?.length) setError(data.failures.join(" · "));
-    } catch (e) { setError(e instanceof Error ? e.message : "Importen feilet."); }
-    finally { setBusy(false); }
+      const result: Message[] = [];
+      if (data.count) result.push({ tone: "success", text: data.count === 1 ? "1 fil er lagt i biblioteket." : `${data.count} filer er lagt i biblioteket.` });
+      if (data.duplicates?.length) result.push({ tone: "info", text: `${data.duplicates.length} ${data.duplicates.length === 1 ? "fil lå" : "filer lå"} der fra før.` });
+      if (data.failures?.length) result.push({ tone: "error", text: `${data.failures.length} ${data.failures.length === 1 ? "fil" : "filer"} kunne ikke hentes.` });
+      setMessages(result);
+      setFailures(data.failures ?? []);
+      setSelected([]);
+      if (data.count) window.dispatchEvent(new Event(ASSETS_CHANGED));
+    } catch (error) {
+      setMessages([{ tone: "error", text: error instanceof Error ? error.message : "Importen feilet." }]);
+    } finally {
+      setBusy(null);
+    }
   }
 
-  return <section className="flex flex-col gap-5 rounded-3xl border border-line bg-white p-5 sm:p-7" aria-labelledby="website-import-title">
-    <div><p className="text-xs font-bold tracking-[0.16em] text-spot uppercase">AI-MERKEVAREANALYSE</p><h2 id="website-import-title" className="mt-2 text-2xl font-semibold">Hent merkevare fra nettside</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">Spott analyserer nettsiden og finner bilder, logoer, ikoner, fargepalett og skrifttyper. Velg selv hva som skal importeres til bedriftens private merkevarebibliotek.</p></div>
-    <form className="flex flex-col gap-3 sm:flex-row" onSubmit={e=>{e.preventDefault();void analyze();}}>
-      <input type="text" inputMode="url" value={website} onChange={e=>setWebsite(e.target.value)} placeholder="https://malina.no" required className="min-h-12 min-w-0 flex-1 rounded-xl border border-line bg-paper px-4 text-sm outline-none focus:border-ink"/>
-      <button type="submit" disabled={busy || !website.trim()} className="min-h-12 rounded-full bg-ink px-6 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Analyserer …" : "Analyser nettside"}</button>
-    </form>
-    {error ? <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p> : null}
-    {message ? <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{message}</p> : null}
-    {analysis ? <>
-      <div className="flex flex-wrap items-center justify-between gap-2"><div><h3 className="font-semibold">Funnet på {new URL(analysis.website).hostname}</h3><p className="text-xs text-ink-soft">{analysis.pages?.length ?? 1} sider analysert · {analysis.assets.length} bilder og grafikkelementer · {analysis.colors.length} fargeverdier</p></div><button type="button" onClick={()=>setSelected(analysis.assets.map(a=>a.url))} className="text-xs font-semibold underline">Velg alle</button></div>
-      {analysis.pages?.length ? <details className="rounded-xl border border-line p-3"><summary className="cursor-pointer text-sm font-semibold">Analyserte sider ({analysis.pages.length})</summary><ul className="mt-3 space-y-1 text-xs text-ink-soft">{analysis.pages.map(page=><li key={page.url} className="truncate">{page.url}</li>)}</ul>{analysis.failures?.length ? <p className="mt-2 text-xs text-amber-700">{analysis.failures.length} sider kunne ikke hentes.</p> : null}</details> : null}
-      {analysis.assets.length ? <div className="flex flex-col gap-5">{[...new Set(analysis.assets.map(asset=>asset.category))].map(category=><div key={category}><h4 className="mb-2 text-sm font-semibold">{category} <span className="font-normal text-ink-soft">({analysis.assets.filter(asset=>asset.category===category).length})</span></h4><div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{analysis.assets.filter(asset=>asset.category===category).map(asset=><label key={asset.url} className={"cursor-pointer overflow-hidden rounded-2xl border " + (selected.includes(asset.url) ? "border-ink ring-1 ring-ink" : "border-line")}><div className="flex aspect-[4/3] items-center justify-center bg-mist"><img src={asset.url} alt="" loading="lazy" className="size-full object-contain"/></div><div className="flex items-start gap-2 p-3"><input type="checkbox" checked={selected.includes(asset.url)} onChange={e=>setSelected(current=>e.target.checked ? [...current,asset.url] : current.filter(x=>x!==asset.url))} className="mt-0.5"/><span className="min-w-0"><span className="block truncate text-xs font-semibold">{asset.name}</span><span className="text-[11px] text-ink-soft">{asset.category}</span>{asset.sourcePage ? <span className="block truncate text-[10px] text-ink-soft" title={asset.sourcePage}>Fra: {new URL(asset.sourcePage).pathname || "/"}</span> : null}</span></div></label>)}</div></div>)}</div> : null}
-      {analysis.colors.length ? <div><h3 className="mb-2 text-sm font-semibold">Oppdagede farger</h3><div className="flex flex-wrap gap-2">{analysis.colors.map(color=><span key={color} title={color} className="flex items-center gap-2 rounded-full border border-line px-2 py-1 text-xs"><span className="size-5 rounded-full border border-black/10" style={{backgroundColor:color}}/>{color}</span>)}</div></div> : null}
-      {analysis.fonts.length ? <div><h3 className="mb-2 text-sm font-semibold">Mulige skrifttyper / CSS-referanser</h3><ul className="list-inside list-disc text-xs text-ink-soft">{analysis.fonts.map(font=><li key={font}>{font}</li>)}</ul></div> : null}
-      <div className="flex flex-wrap items-center gap-3"><button type="button" onClick={()=>void importSelected()} disabled={busy || !selected.length} className="min-h-11 rounded-full bg-ink px-6 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Importerer …" : "Importer " + selected.length + " valgte filer"}</button><span className="text-xs text-ink-soft">Du godkjenner filene før de lagres.</span></div>
-    </> : null}
-    <p className="text-xs leading-relaxed text-ink-soft">Importøren finner offentlig tilgjengelige bilder, SVG-grafikk og bakgrunnsbilder fra HTML, responsive bildekilder og eksterne CSS-filer. Innloggede områder og grafikk som tegnes dynamisk i JavaScript er ikke inkludert. Den følger ikke innlogginger eller betalingsmurer, og blokkerer lokale/private nettverksadresser. Kontroller at du har rett til å bruke materialet du importerer.</p>
-  </section>;
+  const toggle = (url: string, on: boolean) =>
+    setSelected((current) => (on ? (current.length < MAX_IMPORT ? [...current, url] : current) : current.filter((x) => x !== url)));
+  const categories = analysis ? [...new Set(analysis.assets.map((a) => a.category))] : [];
+  const full = selected.length >= MAX_IMPORT;
+
+  return (
+    <section id="hent-fra-nettside" className="flex scroll-mt-24 flex-col gap-5 border-t border-line pt-8" aria-labelledby="hent-tittel">
+      <div>
+        <h2 id="hent-tittel" className="text-2xl font-bold tracking-tight">Hent fra nettsiden</h2>
+        <p className="mt-2 max-w-2xl leading-relaxed text-ink-soft">
+          Spott leser opptil ti sider og finner logoer, bilder, farger og fonter. Du velger selv hva som skal inn i biblioteket.
+        </p>
+      </div>
+      <form className="flex flex-col gap-3 sm:flex-row" onSubmit={(e) => { e.preventDefault(); void analyze(); }}>
+        <label htmlFor="importer-nettside" className="sr-only">Nettside</label>
+        <input
+          id="importer-nettside"
+          type="text"
+          inputMode="url"
+          autoComplete="url"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          placeholder="dinbedrift.no"
+          required
+          className="min-h-12 min-w-0 flex-1 rounded-xl border border-line bg-paper px-4 text-base"
+        />
+        <button type="submit" disabled={busy !== null || !website.trim()} className="min-h-12 rounded-full bg-ink px-6 font-semibold text-paper disabled:opacity-50">
+          {busy === "analyze" ? "Leser nettsiden …" : "Les nettsiden"}
+        </button>
+      </form>
+      {busy === "analyze" ? <Notice tone="info">Dette tar opptil et halvt minutt.</Notice> : null}
+      {messages.map((message, i) => <Notice key={i} tone={message.tone}>{message.text}</Notice>)}
+      {failures.length ? (
+        <details className="rounded-xl border border-line p-3 text-sm">
+          <summary className="cursor-pointer font-semibold">Se hva som ikke kunne hentes</summary>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-ink-soft">{failures.map((f, i) => <li key={i}>{f}</li>)}</ul>
+        </details>
+      ) : null}
+
+      {analysis ? (
+        <div className="flex flex-col gap-6">
+          <p className="text-sm text-ink-soft">
+            Leste {analysis.pages.length} {analysis.pages.length === 1 ? "side" : "sider"} på {new URL(analysis.website).hostname}
+            {analysis.failures.length ? `, ${analysis.failures.length} kunne ikke hentes` : ""}
+            {analysis.stoppedEarly ? ". Stoppet på tidsgrensen" : ""}.
+          </p>
+
+          {categories.map((category) => {
+            const items = analysis.assets.filter((a) => a.category === category);
+            return (
+              <fieldset key={category} className="flex flex-col gap-3">
+                <legend className="mb-3 font-bold">{category} <span className="font-normal text-ink-soft">({items.length})</span></legend>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {items.map((asset) => {
+                    const checked = selected.includes(asset.url);
+                    return (
+                      <label key={asset.url} className={"flex cursor-pointer flex-col overflow-hidden rounded-2xl border focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-spot " + (checked ? "border-ink ring-1 ring-ink" : "border-line") + (full && !checked ? " opacity-50" : "")}>
+                        <span className="flex aspect-[4/3] items-center justify-center bg-mist p-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- forhåndsvisning rett fra kundens egen nettside */}
+                          <img src={asset.url} alt="" loading="lazy" referrerPolicy="no-referrer" className="size-full object-contain" />
+                        </span>
+                        <span className="flex items-start gap-2 p-3">
+                          <input type="checkbox" checked={checked} disabled={full && !checked} onChange={(e) => toggle(asset.url, e.target.checked)} className="mt-0.5 accent-spot" />
+                          <span className="min-w-0">
+                            <span className="block truncate text-xs font-semibold">{asset.name}</span>
+                            {asset.sourcePage ? <span className="block truncate text-xs text-ink-soft">{new URL(asset.sourcePage).pathname}</span> : null}
+                          </span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            );
+          })}
+
+          {analysis.assets.length ? (
+            <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-paper/95 p-3 shadow-[0_10px_30px_-20px_rgb(16_27_59/0.5)] backdrop-blur">
+              <button type="button" onClick={() => void importSelected()} disabled={busy !== null || !selected.length} className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper disabled:opacity-50">
+                {busy === "import" ? "Henter filene …" : `Legg ${selected.length} ${selected.length === 1 ? "fil" : "filer"} i biblioteket`}
+              </button>
+              <span className="text-sm text-ink-soft">{full ? `Maks ${MAX_IMPORT} om gangen` : `${selected.length} av maks ${MAX_IMPORT} valgt`}</span>
+              {selected.length ? <button type="button" onClick={() => setSelected([])} className="text-sm font-semibold underline underline-offset-2">Fjern valgene</button> : null}
+            </div>
+          ) : null}
+
+          {analysis.colors.length ? (
+            <div>
+              <h3 className="font-bold">Farger</h3>
+              <p className="mt-1 text-sm text-ink-soft">Mest brukt først. Grå og svart-hvitt står til slutt.</p>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {analysis.colors.map((color) => (
+                  <li key={color.hex} className="flex items-center gap-2 rounded-full border border-line py-1 pr-3 pl-1 text-xs tabular-nums">
+                    <span className="size-6 rounded-full border border-ink/10" style={{ backgroundColor: color.hex }} aria-hidden="true" />
+                    {color.hex}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {analysis.fonts.length ? (
+            <div>
+              <h3 className="font-bold">Fonter</h3>
+              <p className="mt-1 text-sm text-ink-soft">Fonter nettsiden bruker. Velg dem under Typografi hvis de skal gjelde innholdet også.</p>
+              <ul className="mt-3 flex flex-wrap gap-2">{analysis.fonts.map((font) => <li key={font} className="rounded-full bg-mist px-3 py-1.5 text-sm">{font}</li>)}</ul>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      <p className="text-sm leading-relaxed text-ink-soft">
+        Spott henter bare det som er åpent tilgjengelig, og følger ikke innlogginger. SVG-logoer lagres som PNG.
+        Sjekk at bedriften har rett til å bruke bildene.
+      </p>
+    </section>
+  );
 }

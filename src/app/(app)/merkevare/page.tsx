@@ -1,33 +1,51 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { Loading } from "@/components/loading";
+import { Notice } from "@/components/notice";
+import { loadBrandAnalysis } from "@/lib/ai/brand-analysis-cache";
 import { requireOrg } from "@/lib/auth";
 import { BrandAnalysisEditor } from "./brand-analysis-editor";
 
-export const metadata: Metadata = { title: "Merkevaregrunnmur" };
+export const metadata: Metadata = { title: "Merkevareanalyse" };
 
 export default function BrandAnalysisPage() {
   return (
     <>
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-bold tracking-[0.18em] text-spot uppercase">SPOTTS KUNNSKAPSGRUNNLAG</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.055em] sm:text-5xl">Merkevaregrunnmur<span className="text-spot">.</span></h1>
-          <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-soft">Her kan du kontrollere og forme kunnskapen Spott bruker når den lager innhold og markedsføring for bedriften.</p>
-        </div>
-        <Link href="/profil" className="inline-flex min-h-11 items-center justify-center rounded-full border border-line px-5 text-sm font-semibold hover:bg-mist">Rediger profil</Link>
+      <header className="flex flex-col gap-2">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Merkevareanalyse</h1>
+        <p className="max-w-2xl text-ink-soft">
+          Det Spott vet om bedriften: målgrupper, tone, budskap og muligheter. Rett det som ikke stemmer, og godkjenn.
+        </p>
       </header>
-      <Suspense fallback={<Loading />}><BrandAnalysisData /></Suspense>
+      <Suspense fallback={<Loading />}>
+        <BrandAnalysisData />
+      </Suspense>
     </>
   );
 }
 
 async function BrandAnalysisData() {
   const { supabase, org } = await requireOrg();
-  const { data, error } = await supabase.from("brand_analyses")
-    .select("analysis,status,analyzed_at,website_url,source_pages,model,approved_at")
-    .eq("org_id", org.id).maybeSingle();
-  if (error) return <div className="rounded-xl border border-spot/30 bg-spot/5 p-4 text-sm">Kunne ikke hente merkevareanalysen. Last siden på nytt.</div>;
-  return <BrandAnalysisEditor initialAnalysis={data?.analysis ?? null} initialStatus={data?.status ?? "not_created"} analyzedAt={data?.analyzed_at ?? null} websiteUrl={data?.website_url ?? null} sourcePages={data?.source_pages ?? []} model={data?.model ?? null} approvedAt={data?.approved_at ?? null} organizationName={org.name} />;
+  const { data: profile } = await supabase.from("brand_profiles")
+    .select("website_url,tone,audience,products,avoid,language").eq("org_id", org.id).maybeSingle();
+  let stored;
+  try {
+    stored = await loadBrandAnalysis(supabase, org, profile);
+  } catch {
+    return <Notice tone="error">Kunne ikke hente analysen. Last siden på nytt.</Notice>;
+  }
+  return (
+    <BrandAnalysisEditor
+      initialAnalysis={stored.analysis}
+      initialStatus={stored.status}
+      analyzedAt={stored.analyzedAt}
+      approvedAt={stored.approvedAt}
+      websiteUrl={stored.websiteUrl}
+      profileWebsite={profile?.website_url ?? null}
+      sourcePages={stored.sourcePages}
+      model={stored.model}
+      stale={stored.stale}
+      organizationName={org.name}
+    />
+  );
 }

@@ -3,24 +3,30 @@ import { Suspense, type ReactNode } from "react";
 import { Wordmark } from "@/components/wordmark";
 import { getAuth, getCurrentOrg } from "@/lib/auth";
 import { signOut } from "./actions";
+import { AppNav } from "./app-nav";
 
+// Rammen er statisk. Det som leser innloggingen ligger bak Suspense og strømmes inn.
+// Tilgangen sjekkes i proxyen og på nytt i hver side (requireUser / requireOrg).
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-line bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
-          <div className="flex min-w-0 items-center gap-8">
-            <Link href="/dashboard" aria-label="Spott – dashboard" className="shrink-0 rounded-sm"><Wordmark className="text-2xl" /></Link>
-            <nav aria-label="Hovedmeny" className="flex items-center gap-1 sm:gap-2">
-              <Link href="/dashboard" className="rounded-full px-3 py-2 text-sm font-semibold text-ink hover:bg-mist">Oversikt</Link>
-              <Link href="/profil" className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft hover:bg-mist hover:text-ink">Profil</Link>
-              <Link href="/merkevare" className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft hover:bg-mist hover:text-ink">Merkevare</Link>
-              <Link href="/kom-i-gang" className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft hover:bg-mist hover:text-ink">Kom i gang</Link>
-            </nav>
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            <span className="hidden max-w-48 truncate text-sm text-ink-soft sm:block"><Suspense fallback={null}><AccountLabel /></Suspense></span>
-            <form action={signOut}><button type="submit" className="rounded-full border border-line px-4 py-2 text-sm font-semibold transition-colors hover:bg-white">Logg ut</button></form>
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-5 pt-3 sm:flex-nowrap sm:px-8 sm:py-3">
+          <Link href="/dashboard" className="shrink-0 rounded-sm">
+            <Wordmark className="text-2xl" />
+          </Link>
+          <AppNav />
+          <div className="flex shrink-0 items-center gap-3 sm:ml-auto">
+            <span className="hidden max-w-48 truncate text-sm text-ink-soft lg:block">
+              <Suspense fallback={null}>
+                <AccountLabel />
+              </Suspense>
+            </span>
+            <form action={signOut}>
+              <button type="submit" className="rounded-full border border-line px-4 py-2 text-sm font-semibold hover:border-ink">
+                Logg ut
+              </button>
+            </form>
           </div>
         </div>
       </header>
