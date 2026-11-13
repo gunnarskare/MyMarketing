@@ -31,7 +31,7 @@ export function SiteFooter() {
         </nav>
       </div>
       <div className="border-t border-line/80 px-5 py-4 text-center text-xs text-ink-soft sm:px-8 lg:px-10">
-        © {new Date().getFullYear()} {company.legalName}. Laget for bedrifter med ting å gjøre.
+        © 2026 {company.legalName}. Laget for bedrifter med ting å gjøre.
       </div>
     </footer>
   );
