@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { Field, SubmitButton, TextArea } from "@/components/form";
 import { Notice } from "@/components/notice";
@@ -78,10 +79,20 @@ export function ProfileForm({ profile }: { profile: BrandProfile | null }) {
       </div>
 
       {!pending && state.status === "error" ? <Notice tone="error">{state.message}</Notice> : null}
-      {!pending && state.status === "saved" && !changedSinceSave ? <Notice tone="success">Profilen er lagret.</Notice> : null}
+      {!pending && state.status === "saved" && !changedSinceSave ? (
+        <div className="flex flex-col gap-3 rounded-2xl border border-ok/25 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <Notice tone="success">Profilen er lagret.</Notice>
+          <Link href="/dashboard" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-ink px-5 text-sm font-semibold text-paper transition-colors hover:bg-[#172747]">
+            Fortsett til oversikten <span aria-hidden className="ml-2 text-spot">↗</span>
+          </Link>
+        </div>
+      ) : null}
 
-      <div>
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
         <SubmitButton disabled={pending}>{pending ? "Lagrer …" : "Lagre profilen"}</SubmitButton>
+        <Link href="/dashboard" className="inline-flex min-h-11 items-center px-3 text-sm font-semibold text-ink-soft underline decoration-line underline-offset-4 hover:text-ink">
+          Til bedriftsoversikten
+        </Link>
       </div>
     </form>
   );
