@@ -32,12 +32,12 @@ const progress = [
 
 const promises = [
   {
-    title: "Du har siste ord",
-    text: "Godkjenning skal være en naturlig del av arbeidsflyten. Innhold skal ikke publiseres uten at du har sagt ja.",
+    title: "Ingenting går ut uten deg",
+    text: "Hvert innlegg skal vente til du har lest og godkjent det.",
   },
   {
-    title: "Personvern tas på alvor",
-    text: "Bedriftsopplysninger lagres i EU. Vi samler inn det som trengs for å levere tjenesten.",
+    title: "Lagret i EU",
+    text: "Kontoen og opplysningene om bedriften ligger i en database i Stockholm.",
   },
   {
     title: "Et norsk selskap",
@@ -75,8 +75,8 @@ export default function Home() {
                 synligheten<span className="font-editorial text-spot">.</span>
               </h1>
               <p className="mt-8 max-w-xl text-lg leading-relaxed text-ink-soft sm:text-xl">
-                Spott hjelper små bedrifter med å holde seg synlige. Vi bygger en markedsføringsassistent
-                som lærer bedriften å kjenne og gjør veien fra idé til publisert innlegg enklere.
+                For små bedrifter uten markedsavdeling. Spott lærer hvordan dere høres ut, og skal lage innlegg
+                til Facebook, Instagram og LinkedIn – klare for gjennomgang og godkjenning.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-4">
                 <Link
@@ -121,8 +121,8 @@ export default function Home() {
                 </h2>
               </div>
               <p className="max-w-lg text-lg leading-relaxed text-ink-muted lg:justify-self-end">
-                God markedsføring starter med å forstå hvem du er, hva du tilbyr og hvem du vil nå.
-                Spott skal gjøre den jobben enklere – uten å ta stemmen fra bedriften.
+                Spott skal lage innhold som er tilpasset bedriften og kanalene dere bruker. Du skal kunne lese
+                gjennom og godkjenne før publisering.
               </p>
             </div>
             <ol className="mt-16 grid gap-10 border-t border-ink-line pt-8 md:grid-cols-3 md:gap-8">
@@ -145,8 +145,8 @@ export default function Home() {
                 Vi bygger Spott – steg for steg<span className="font-editorial text-spot">.</span>
               </h2>
               <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-soft">
-                Spott er under utvikling. Konto og merkevareprofil er på plass, og resten av
-                markedsføringsflyten bygges videre. Vi er åpne om hva som er klart og hva som kommer.
+                Konto og bedriftsoppsett samt merkevareprofil er på plass. Ukeplan, ferdige utkast, publisering
+                og innsikt er fortsatt under utvikling. Vi er åpne om hva som virker i dag og hva som kommer.
               </p>
               <Link href="/login" className="mt-8 inline-flex items-center gap-3 font-semibold underline decoration-2 underline-offset-4 transition-colors hover:text-spot-dark">
                 Opprett konto <span aria-hidden>↗</span>
