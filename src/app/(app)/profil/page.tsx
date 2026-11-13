@@ -5,6 +5,7 @@ import { requireOrg } from "@/lib/auth";
 import type { BrandProfile } from "@/lib/brand-profile";
 import { ProfileForm } from "./profile-form";
 import { BrandLibrary } from "./brand-library";
+import { TypographyEditor } from "./typography-editor";
 
 export const metadata: Metadata = { title: "Merkevareprofil" };
 
@@ -25,5 +26,5 @@ async function SavedProfile() {
   const { data } = await supabase.from("brand_profiles")
     .select("website_url, tone, audience, products, avoid, language")
     .eq("org_id", org.id).maybeSingle<BrandProfile>();
-  return <><ProfileForm profile={data ?? null} /><BrandLibrary orgId={org.id} /></>;
+  return <><ProfileForm profile={data ?? null} /><TypographyEditor orgId={org.id} /><BrandLibrary orgId={org.id} /></>;
 }
