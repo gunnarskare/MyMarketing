@@ -96,7 +96,7 @@ async function getContext(request: NextRequest) {
 }
 
 async function runTool(name: string, args: Record<string, unknown>, context: Awaited<ReturnType<typeof getContext>>) {
-  if ("error" in context) return toolText(context.error, true);
+  if ("error" in context && typeof context.error === "string") return toolText(context.error, true);
   const { supabase, org } = context;
 
   if (name === "get_brand_profile") {
