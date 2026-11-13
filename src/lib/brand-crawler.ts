@@ -1,7 +1,7 @@
 export type CrawledPage = { url: string; html: string; depth: number };
 export type CrawlFailure = { url: string; error: string };
 
-const MAX_PAGES = 30;
+const MAX_PAGES = 10;
 const MAX_DEPTH = 2;
 const SKIP_PATH = /\/(wp-admin|wp-login|cart|checkout|account|login|search|tag|author)(\/|$)/i;
 const SKIP_FILE = /\.(?:pdf|zip|mp4|mp3|mov|woff2?|ttf|eot|css|js)(?:[?#]|$)/i;
@@ -71,27 +71,30 @@ export async function crawlWebsite(
     // Many small sites do not publish a sitemap; internal links are the fallback.
   }
 
-  while (queue.length && pages.length < MAX_PAGES) {
-    const current = queue.shift()!;
-    if (visited.has(current.url)) continue;
-    visited.add(current.url);
-    try {
-      const result = await fetchPage(current.url);
-      const canonical = normalizePageUrl(result.url, homepage, origin) ?? current.url;
-      if (pages.some(page => page.url === canonical)) continue;
-      pages.push({ url: canonical, html: result.html, depth: current.depth });
-      if (current.depth < MAX_DEPTH) {
-        for (const link of internalPageLinks(result.html, canonical)) {
-          if (!queued.has(link) && queued.size < MAX_PAGES * 3) {
-            queued.add(link);
-            queue.push({ url: link, depth: current.depth + 1 });
+  const worker = async () => {
+    while (queue.length && pages.length < MAX_PAGES) {
+      const current = queue.shift();
+      if (!current || visited.has(current.url)) continue;
+      visited.add(current.url);
+      try {
+        const result = await fetchPage(current.url);
+        const canonical = normalizePageUrl(result.url, homepage, origin) ?? current.url;
+        if (pages.some(page => page.url === canonical)) continue;
+        pages.push({ url: canonical, html: result.html, depth: current.depth });
+        if (current.depth < MAX_DEPTH) {
+          for (const link of internalPageLinks(result.html, canonical)) {
+            if (!queued.has(link) && queued.size < MAX_PAGES * 3) {
+              queued.add(link);
+              queue.push({ url: link, depth: current.depth + 1 });
+            }
           }
         }
+      } catch (error) {
+        failures.push({ url: current.url, error: error instanceof Error ? error.message : "Kunne ikke hente siden." });
       }
-    } catch (error) {
-      failures.push({ url: current.url, error: error instanceof Error ? error.message : "Kunne ikke hente siden." });
     }
-  }
+  };
+  await Promise.all(Array.from({ length: 3 }, () => worker()));
 
   return { pages, failures, limits: { maxPages: MAX_PAGES, maxDepth: MAX_DEPTH } };
 }
