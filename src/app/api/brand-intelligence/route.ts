@@ -136,7 +136,8 @@ export async function POST(request: NextRequest) {
   try {
     if (body.action === "analyze") {
       if (typeof body.website !== "string" || body.website.length > 500) return NextResponse.json({ error: "Skriv inn en gyldig nettadresse." }, { status: 400 });
-      const start = body.website.startsWith("https://") ? body.website : "https://" + body.website;
+      const input = body.website.trim();
+      const start = /^https?:\/\//i.test(input) ? input : "https://" + input;
       const page = await fetchPublic(start, MAX_HTML);
       const html = page.bytes.toString("utf8");
       const parsed = candidatesFromHtml(html, page.url);
