@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 
 type Asset = { id: string; kind: "image" | "logo" | "font"; original_name: string; storage_path: string; mime_type: string; file_size: number; is_primary: boolean };
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
@@ -9,10 +9,7 @@ const FONT_EXTENSIONS = new Set(["woff2", "woff", "ttf", "otf"]);
 const sizeLabel = (n: number) => n < 1048576 ? Math.round(n / 1024) + " KB" : (n / 1048576).toFixed(1) + " MB";
 
 export function BrandLibrary({ orgId }: { orgId: string }) {
-  const supabase = useMemo(() => createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-  ), []);
+  const supabase = useMemo(() => createClient(), []);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [urls, setUrls] = useState<Record<string,string>>({});
   const [loading, setLoading] = useState(true);
