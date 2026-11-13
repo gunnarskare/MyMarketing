@@ -12,11 +12,11 @@ const schibsted = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "Spott – ukas innlegg, ferdig skrevet",
+    default: "Spott – markedsføring i bedre flyt",
     template: "%s · Spott",
   },
   description:
-    "Spott skriver ukas innlegg til Facebook, Instagram og LinkedIn for små bedrifter. Ingenting publiseres før du har godkjent.",
+    "Spott hjelper små bedrifter med merkevareprofil og markedsføring i sosiale medier. En enklere vei fra bedriftens historie til godt innhold.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
