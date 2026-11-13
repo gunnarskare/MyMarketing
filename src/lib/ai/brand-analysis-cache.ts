@@ -37,6 +37,7 @@ export async function getOrCreateBrandAnalysis(supabase:SupabaseClient, org:{id:
     source_hash:sourceHash,analysis,source_pages:crawl.pages.map(p=>({url:p.url,depth:p.depth})),
     model:process.env.OPENAI_DEFAULT_MODEL||"gpt-5.6-luna",
     status:analysis.quality.requiresHumanReview||analysis.quality.confidence==="low"?"needs_review":"ready",
+    approved_at:null,approved_by:null,
     analyzed_at:new Date().toISOString(),updated_at:new Date().toISOString()
   };
   const {error:writeError}=await supabase.from("brand_analyses").upsert(row,{onConflict:"org_id"});
