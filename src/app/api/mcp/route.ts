@@ -2,9 +2,6 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseKey, supabaseUrl } from "@/lib/supabase/config";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 const PROTOCOL_VERSION = "2025-03-26";
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const PROFILE_FIELDS = ["website_url", "tone", "audience", "products", "avoid", "language"] as const;
