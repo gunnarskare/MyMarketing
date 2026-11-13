@@ -20,6 +20,28 @@ function isPublicIp(ip: string) {
   return false;
 }
 
+async function resolvePublicRecords(host: string) {
+  if (isIP(host)) return [{ address: host }];
+  let lastError: unknown;
+  // DNS resolvers can temporarily return EBUSY/EAI_AGAIN under load.
+  // Retry transient errors without bypassing the public-IP validation.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await lookup(host, { all: true, verbatim: true });
+    } catch (error) {
+      lastError = error;
+      const code = (error as NodeJS.ErrnoException).code;
+      if (!["EBUSY", "EAI_AGAIN", "ETIMEOUT"].includes(code ?? "") || attempt === 2) break;
+      await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)));
+    }
+  }
+  const code = (lastError as NodeJS.ErrnoException | undefined)?.code;
+  if (["EBUSY", "EAI_AGAIN", "ETIMEOUT"].includes(code ?? "")) {
+    throw new Error("DNS-oppslaget er midlertidig utilgjengelig. Vent litt og prøv igjen.");
+  }
+  throw lastError instanceof Error ? lastError : new Error("Kunne ikke slå opp domenet.");
+}
+
 async function safeUrl(raw: string, base?: string) {
   const url = new URL(raw, base);
   if (url.protocol !== "https:" || url.username || url.password || !url.hostname || url.port && url.port !== "443") {
@@ -29,7 +51,7 @@ async function safeUrl(raw: string, base?: string) {
   if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) {
     throw new Error("Adressen peker mot et privat eller lokalt nettverk.");
   }
-  const records = isIP(host) ? [{ address: host }] : await lookup(host, { all: true, verbatim: true });
+  const records = await resolvePublicRecords(host);
   if (!records.length || records.some(record => !isPublicIp(record.address))) {
     throw new Error("Adressen peker mot et privat eller reservert nettverk.");
   }
