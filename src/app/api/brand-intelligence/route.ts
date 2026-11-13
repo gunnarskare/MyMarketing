@@ -188,7 +188,7 @@ function stylesheetUrls(html: string, pageUrl: string) {
       if (url.protocol === "https:") urls.add(url.toString());
     } catch { /* ignore malformed CSS links */ }
   }
-  return [...urls].slice(0, 8);
+  return [...urls].slice(0, 3);
 }
 
 function candidatesFromCss(css: string, cssUrl: string) {
@@ -217,10 +217,13 @@ function sanitizeSvg(input: Buffer) {
   let svg = input.toString("utf8");
   if (!/<svg[\s>]/i.test(svg)) throw new Error("Ugyldig SVG-fil.");
   svg = svg
-    .replace(/<\s*(script|foreignObject|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+    .replace(/<\s*(script|foreignObject|iframe|object|embed)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+    .replace(/<\s*(script|foreignObject|iframe|object|embed)\b[^>]*\/\s*>/gi, "")
     .replace(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
     .replace(/\s+(?:href|xlink:href)\s*=\s*(["'])(?!#|data:image\/(?:png|jpeg|webp);base64,)[\s\S]*?\1/gi, "")
     .replace(/url\(\s*["']?(?!#)[^)]+\)/gi, "none")
+    .replace(/@import[^;]+;?/gi, "")
+    .replace(/<!DOCTYPE[^>]*>/gi, "")
     .replace(/<\?xml[^>]*>/gi, "");
   return Buffer.from(svg, "utf8");
 }
@@ -253,7 +256,7 @@ export async function POST(request: NextRequest) {
         const pageAssets = [...parsed.assets];
         for (const cssUrl of stylesheetUrls(crawledPage.html, crawledPage.url)) {
           try {
-            const cssFile = await fetchPublic(cssUrl, MAX_CSS, false, false, 4_000, true);
+            const cssFile = await fetchPublic(cssUrl, MAX_CSS, false, false, 2_500, true);
             pageAssets.push(...candidatesFromCss(cssFile.bytes.toString("utf8"), cssFile.url));
           } catch { /* stylesheet may be blocked or unavailable */ }
         }
