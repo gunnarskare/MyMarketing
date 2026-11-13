@@ -2,6 +2,7 @@ import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import { NextRequest, NextResponse } from "next/server";
 import { requireOrg } from "@/lib/auth";
+import { crawlWebsite } from "@/lib/brand-crawler";
 
 export const maxDuration = 30;
 
@@ -58,10 +59,10 @@ async function safeUrl(raw: string, base?: string) {
   return url;
 }
 
-async function fetchPublic(raw: string, maxBytes: number, imageOnly = false) {
+async function fetchPublic(raw: string, maxBytes: number, imageOnly = false, allowXml = false) {
   let url = await safeUrl(raw);
   for (let hop = 0; hop < 4; hop++) {
-    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(12_000), headers: { "User-Agent": "SpottBrandImporter/1.0", Accept: imageOnly ? "image/*" : "text/html,application/xhtml+xml" } });
+    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(12_000), headers: { "User-Agent": "SpottBrandImporter/1.0", Accept: imageOnly ? "image/*" : allowXml ? "text/html,application/xhtml+xml,application/xml,text/xml" : "text/html,application/xhtml+xml" } });
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get("location");
       if (!location) throw new Error("Ugyldig videresending fra nettsiden.");
@@ -71,7 +72,7 @@ async function fetchPublic(raw: string, maxBytes: number, imageOnly = false) {
     if (!response.ok) throw new Error("Nettsiden svarte med HTTP " + response.status + ".");
     const type = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
     if (imageOnly && !IMAGE_TYPES.has(type)) throw new Error("Filtypen er ikke et støttet bildeformat.");
-    if (!imageOnly && !["text/html", "application/xhtml+xml"].includes(type)) throw new Error("Adressen leverte ikke en HTML-side.");
+    if (!imageOnly && !(["text/html", "application/xhtml+xml"].includes(type) || allowXml && ["application/xml", "text/xml"].includes(type))) throw new Error("Adressen leverte ikke en HTML- eller XML-side.");
     const declared = Number(response.headers.get("content-length") ?? 0);
     if (declared > maxBytes) throw new Error("Filen er større enn tillatt grense.");
     const reader = response.body?.getReader();
@@ -183,10 +184,34 @@ export async function POST(request: NextRequest) {
       if (typeof body.website !== "string" || body.website.length > 500) return NextResponse.json({ error: "Skriv inn en gyldig nettadresse." }, { status: 400 });
       const input = body.website.trim();
       const start = /^https?:\/\//i.test(input) ? input : "https://" + input;
-      const page = await fetchPublic(start, MAX_HTML);
-      const html = page.bytes.toString("utf8");
-      const parsed = candidatesFromHtml(html, page.url);
-      return NextResponse.json({ website: page.url, ...parsed });
+      const crawl = await crawlWebsite(start, async (url) => {
+        const page = await fetchPublic(url, MAX_HTML, false, true);
+        return { html: page.bytes.toString("utf8"), url: page.url };
+      });
+      if (!crawl.pages.length) {
+        const reason = crawl.failures[0]?.error || "Fant ingen tilgjengelige sider.";
+        throw new Error(reason);
+      }
+      const assets = new Map<string, { url: string; name: string; category: string; sourcePage: string }>();
+      const colors = new Set<string>();
+      const fonts = new Set<string>();
+      for (const crawledPage of crawl.pages) {
+        const parsed = candidatesFromHtml(crawledPage.html, crawledPage.url);
+        for (const asset of parsed.assets) {
+          if (!assets.has(asset.url)) assets.set(asset.url, { ...asset, sourcePage: crawledPage.url });
+        }
+        parsed.colors.forEach(color => colors.add(color));
+        parsed.fonts.forEach(font => fonts.add(font));
+      }
+      return NextResponse.json({
+        website: start,
+        assets: [...assets.values()].slice(0, 100),
+        colors: [...colors].slice(0, 60),
+        fonts: [...fonts].slice(0, 30),
+        pages: crawl.pages.map(page => ({ url: page.url, depth: page.depth })),
+        failures: crawl.failures.slice(0, 10),
+        limits: crawl.limits,
+      });
     }
     if (body.action === "import") {
       if (!Array.isArray(body.selected) || body.selected.length < 1 || body.selected.length > 15) return NextResponse.json({ error: "Velg mellom 1 og 15 bilder." }, { status: 400 });
