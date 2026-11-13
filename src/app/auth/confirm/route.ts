@@ -17,7 +17,7 @@ function isOtpType(value: string | null): value is EmailOtpType {
 }
 
 /**
- * Lenken i bekreftelses-e-posten lander her. Støtter begge variantene Supabase bruker:
+ * Lenken i bekreftelses-e-posten og returen fra Google lander her. Støtter variantene Supabase bruker:
  * ?code=... (standardmalen) og ?token_hash=...&type=... (tilpasset mal).
  * Videresender alltid til en fast side i appen, aldri til en adresse fra lenken.
  */
@@ -46,7 +46,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Supabase legger ved ?error=... når innlogging hos Google ble avbrutt eller feilet.
   target.pathname = "/login";
-  target.searchParams.set("melding", "lenke");
+  target.searchParams.set("melding", searchParams.has("error") ? "google" : "lenke");
   return NextResponse.redirect(target);
 }

@@ -73,3 +73,21 @@ export async function signup(formData: FormData) {
   }
   redirect("/login?melding=sjekk-epost");
 }
+
+/**
+ * Sender brukeren til Google. Supabase sender dem tilbake til /auth/confirm
+ * med en kode som byttes mot en innloggingsøkt.
+ */
+export async function signInWithGoogle() {
+  if (!isSupabaseConfigured()) redirect("/login");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${await getOrigin()}/auth/confirm` },
+  });
+  if (error || !data.url) {
+    redirect("/login?melding=teknisk");
+  }
+  redirect(data.url);
+}

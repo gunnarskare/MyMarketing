@@ -31,7 +31,9 @@ export default function PrivacyPage() {
             <ul>
               <li>
                 <strong>Konto:</strong> e-postadressen din og passordet ditt. Passordet lagres som
-                en enveiskode, så verken vi eller andre kan lese det.
+                en enveiskode, så verken vi eller andre kan lese det. Logger du inn med Google, får
+                vi navnet, e-postadressen og profilbildet ditt fra Google, og vi lagrer ikke noe
+                passord.
               </li>
               <li>
                 <strong>Bedriften:</strong> bedriftsnavnet og merkevareprofilen du fyller ut:
