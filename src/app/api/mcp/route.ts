@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseKey, supabaseUrl } from "@/lib/supabase/config";
+import { buildTypographyDesignInstructions } from "@/lib/typography-prompt";
 
 const PROTOCOL_VERSION = "2025-03-26";
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
@@ -104,7 +105,14 @@ async function runTool(name: string, args: Record<string, unknown>, context: Awa
       .select("website_url, tone, audience, products, avoid, language")
       .eq("org_id", org.id).maybeSingle();
     if (error) return toolText(`Kunne ikke hente merkevareprofilen: ${error.message}`, true);
-    return toolText(JSON.stringify({ organization: org.name, profile: data ?? null }, null, 2));
+    const { data: typography } = await supabase.from("brand_typography").select("settings").eq("org_id", org.id).maybeSingle();
+    return toolText(JSON.stringify({ organization: org.name, profile: data ?? null, typography: typography?.settings ?? null, design_instructions: buildTypographyDesignInstructions(typography?.settings) }, null, 2));
+  }
+
+  if (name === "get_brand_typography") {
+    const { data, error } = await supabase.from("brand_typography").select("settings, updated_at").eq("org_id", org.id).maybeSingle();
+    if (error) return toolText("Kunne ikke hente typografien. Kontroller at typografimigreringen er installert. " + error.message, true);
+    return toolText(JSON.stringify({ organization: org.name, typography: data?.settings ?? null, instruction: "Bruk de definerte fontene for de tilhørende rollene. Ikke erstatt dem med egne fontvalg uten godkjenning.", design_instructions: buildTypographyDesignInstructions(data?.settings), updated_at: data?.updated_at ?? null }, null, 2));
   }
 
   if (name === "update_brand_profile") {
@@ -211,7 +219,7 @@ export async function POST(request: NextRequest) {
       protocolVersion: PROTOCOL_VERSION,
       capabilities: { tools: {} },
       serverInfo: { name: "spott", version: "0.1.0" },
-      instructions: "Spott lets you read and update a company's brand profile and manage its private brand assets. Always confirm with the user before uploading or changing brand data.",
+      instructions: "Spott lets you read and update a company's brand profile, approved typography system, and private brand assets. When creating marketing materials, call get_brand_typography and follow the assigned font roles exactly. Never silently replace the company's approved fonts. Always confirm with the user before uploading or changing brand data.",
     });
   }
   if (method === "ping") return jsonRpc(id, {});
