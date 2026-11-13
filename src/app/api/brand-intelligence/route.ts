@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
             const cssFile = await fetchPublic(cssUrl, MAX_CSS, false, false, 2_500, true);
             const css = cssFile.bytes.toString("utf8");
             pageAssets.push(...candidatesFromCss(css, cssFile.url));
-            for (const color of css.match(/#[0-9a-f]{3,8}\b|rgba?\([^)]{3,50}\\)/gi) ?? []) colors.add(color.toLowerCase());
+            for (const color of css.match(/#[0-9a-f]{3,8}\b|rgba?\([^)]{3,50}\)/gi) ?? []) colors.add(color.toLowerCase());
             for (const font of css.match(/font-family\s*:\s*([^;{}]{2,100})/gi) ?? []) fonts.add(font.replace(/^font-family\s*:\s*/i, "").trim());
           } catch { /* stylesheet may be blocked or unavailable */ }
         }
