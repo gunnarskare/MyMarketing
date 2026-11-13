@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { run } from "@openai/agents";
 import { requireOrg } from "@/lib/auth";
 import { ensureOpenAIConfigured } from "@/lib/ai/openai-client";
 import { createSpottAssistant } from "@/lib/ai/agents/spott-assistant";
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
       language: profile?.language,
     });
 
-    const result = await agent.run(body.message.trim());
+    const result = await run(agent, body.message.trim());
 
     if (typeof result.finalOutput !== "string" || !result.finalOutput.trim()) {
       return NextResponse.json(
