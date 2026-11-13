@@ -59,10 +59,10 @@ async function safeUrl(raw: string, base?: string) {
   return url;
 }
 
-async function fetchPublic(raw: string, maxBytes: number, imageOnly = false, allowXml = false) {
+async function fetchPublic(raw: string, maxBytes: number, imageOnly = false, allowXml = false, timeoutMs = 12_000) {
   let url = await safeUrl(raw);
   for (let hop = 0; hop < 4; hop++) {
-    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(12_000), headers: { "User-Agent": "SpottBrandImporter/1.0", Accept: imageOnly ? "image/*" : allowXml ? "text/html,application/xhtml+xml,application/xml,text/xml" : "text/html,application/xhtml+xml" } });
+    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(timeoutMs), headers: { "User-Agent": "SpottBrandImporter/1.0", Accept: imageOnly ? "image/*" : allowXml ? "text/html,application/xhtml+xml,application/xml,text/xml" : "text/html,application/xhtml+xml" } });
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get("location");
       if (!location) throw new Error("Ugyldig videresending fra nettsiden.");
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
       const input = body.website.trim();
       const start = /^https?:\/\//i.test(input) ? input : "https://" + input;
       const crawl = await crawlWebsite(start, async (url) => {
-        const page = await fetchPublic(url, MAX_HTML, false, true);
+        const page = await fetchPublic(url, MAX_HTML, false, true, 5_000);
         return { html: page.bytes.toString("utf8"), url: page.url };
       });
       if (!crawl.pages.length) {
