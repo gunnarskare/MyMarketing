@@ -102,30 +102,75 @@ function candidatesFromHtml(html: string, pageUrl: string) {
       const u = new URL(decode(raw.trim()), pageUrl);
       if (u.protocol !== "https:") return;
       if (!/\.(jpe?g|png|webp|avif)(?:[?#]|$)/i.test(u.pathname) && !/image\/(jpeg|png|webp|avif)/i.test(u.search)) return;
-      found.set(u.toString(), { url: u.toString(), name: name.slice(0, 100) || "Nettsidebilde", category });
+      const previous = found.get(u.toString());
+      // Keep the most useful classification when the same file appears in several places.
+      if (!previous || /logo|ikon|grafikk/i.test(category)) {
+        found.set(u.toString(), { url: u.toString(), name: name.slice(0, 100) || "Grafikk fra nettsiden", category });
+      }
     } catch { /* ignorer ugyldige bildeadresser */ }
   };
-  for (const match of html.matchAll(/<img\b([^>]{0,4000})>/gi)) {
+  const addSrcset = (raw: string | undefined, name: string, category: string) => {
+    if (!raw) return;
+    for (const candidate of raw.split(",")) add(candidate.trim().split(/\s+/)[0], name, category);
+  };
+  const classify = (name: string, raw: string) => {
+    const value = (name + " " + raw).toLowerCase();
+    if (/logo|wordmark|brandmark|logotype/.test(value)) return "Logo";
+    if (/favicon|apple-touch|icon|symbol/.test(value)) return "Ikon";
+    if (/banner|hero|header|cover/.test(value)) return "Banner / toppgrafikk";
+    if (/product|produkt|gallery|portfolio/.test(value)) return "Produkt / galleri";
+    return "Bilde / foto";
+  };
+
+  // Standard images, lazy-loaded images and responsive image candidates.
+  for (const match of html.matchAll(/<img\b([^>]{0,8000})>/gi)) {
     const attrs = match[1];
-    const src = attrs.match(/\b(?:src|data-src|data-lazy-src)\s*=\s*["']([^"']+)["']/i)?.[1]
+    const src = attrs.match(/\b(?:src|data-src|data-lazy-src|data-original|data-fallback-src)\s*=\s*["']([^"']+)["']/i)?.[1]
       ?? attrs.match(/\bsrc\s*=\s*([^\s>]+)/i)?.[1];
-    const name = attrs.match(/\b(?:alt|title)\s*=\s*["']([^"']*)["']/i)?.[1] ?? "Bilde fra nettsiden";
-    add(src, decode(name), /logo|brand|symbol/i.test(name + " " + (src ?? "")) ? "Logo / merke" : "Bilde");
+    const name = attrs.match(/\b(?:alt|title|aria-label)\s*=\s*["']([^"']*)["']/i)?.[1] ?? "Bilde fra nettsiden";
+    const category = classify(name, src ?? "");
+    add(src, name, category);
+    addSrcset(attrs.match(/\b(?:srcset|data-srcset|data-lazy-srcset)\s*=\s*["']([^"']+)["']/i)?.[1], name, category);
   }
+  // <picture><source srcset> and other responsive sources.
+  for (const match of html.matchAll(/<source\b([^>]{0,8000})>/gi)) {
+    const attrs = match[1];
+    const raw = attrs.match(/\b(?:srcset|data-srcset)\s*=\s*["']([^"']+)["']/i)?.[1];
+    addSrcset(raw, "Responsivt bilde", classify("", raw ?? ""));
+  }
+  // Social previews, favicons, touch icons, mask icons and preloaded images.
   for (const match of html.matchAll(/<meta\b([^>]+)>/gi)) {
     const attrs = match[1];
     const key = attrs.match(/\b(?:property|name)\s*=\s*["']([^"']+)["']/i)?.[1] ?? "";
-    if (/og:image|twitter:image/i.test(key)) add(attrs.match(/\bcontent\s*=\s*["']([^"']+)["']/i)?.[1], "Delingsbilde", "Profilbilde");
+    if (/og:image|twitter:image|image_src/i.test(key)) add(attrs.match(/\bcontent\s*=\s*["']([^"']+)["']/i)?.[1], "Delingsbilde", "Delingsgrafikk");
   }
   for (const match of html.matchAll(/<link\b([^>]+)>/gi)) {
-    const attrs = match[1]; const rel = attrs.match(/\brel\s*=\s*["']([^"']+)["']/i)?.[1] ?? "";
-    if (/icon|apple-touch-icon/i.test(rel)) add(attrs.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1], "Nettstedsikon", "Ikon");
+    const attrs = match[1];
+    const rel = attrs.match(/\brel\s*=\s*["']([^"']+)["']/i)?.[1] ?? "";
+    const href = attrs.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
+    if (/icon|apple-touch-icon|mask-icon/i.test(rel)) add(href, "Nettstedsikon", "Ikon");
+    if (/preload/i.test(rel) && /image/i.test(attrs)) add(href, "Forhåndslastet grafikk", "Banner / toppgrafikk");
+  }
+  // CSS background-image and other url(...) references in inline styles and embedded stylesheets.
+  const cssBlocks = [
+    ...[...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map(m => m[1]),
+    ...[...html.matchAll(/\bstyle\s*=\s*["']([^"']*)["']/gi)].map(m => m[1]),
+  ];
+  for (const css of cssBlocks) {
+    for (const match of css.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)) {
+      const raw = match[1].trim();
+      add(raw, "CSS-bakgrunn / grafikk", classify("", raw));
+    }
   }
   const colors = [...new Set((html.match(/#[0-9a-f]{3,8}\b|rgba?\([^)]{3,50}\)/gi) ?? []).map(x => x.toLowerCase()))].slice(0, 30);
   const fonts = [...new Set([...(html.match(/font-family\s*:\s*([^;{}]{2,100})/gi) ?? []), ...(html.match(/fonts\.googleapis\.com\/css2\?family=[^"'\s]+/gi) ?? [])].map(x => x.replace(/^font-family\s*:\s*/i, "").trim()))].slice(0, 12);
-  return { assets: [...found.values()].slice(0, 40), colors, fonts };
+  const priority = ["Logo", "Ikon", "Banner / toppgrafikk", "Delingsgrafikk", "Produkt / galleri", "Bilde / foto"];
+  const assets = [...found.values()].sort((a, b) => {
+    const ai = priority.indexOf(a.category); const bi = priority.indexOf(b.category);
+    return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+  });
+  return { assets: assets.slice(0, 100), colors, fonts };
 }
-
 export async function POST(request: NextRequest) {
   let context: Awaited<ReturnType<typeof requireOrg>>;
   try { context = await requireOrg(); } catch { return NextResponse.json({ error: "Du må være logget inn og ha en tilknyttet bedrift." }, { status: 401 }); }
