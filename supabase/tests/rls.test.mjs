@@ -147,7 +147,7 @@ test("uinnloggede får ingenting", async () => {
     await assert.rejects(db.query(`select * from public.organizations`), /permission denied/);
     await assert.rejects(db.query(`select * from public.brand_profiles`), /permission denied/);
     await assert.rejects(db.query(`select public.create_organization('anonym')`), /permission denied/);
-    await assert.rejects(db.query(`select public.is_org_member($1)`, [orgA]), /permission denied/);
+    await assert.rejects(db.query(`select private.is_org_member($1)`, [orgA]), /permission denied/);
   });
 });
 

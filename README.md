@@ -42,6 +42,7 @@ Skjemaet ligger i `supabase/migrations`. Alle tabeller har `org_id` og radnivås
 og innloggede brukere har bare de tilgangene migrasjonen gir dem eksplisitt.
 
 - Kunder opprettes bare gjennom funksjonen `create_organization`.
+- Hjelpefunksjonen RLS-reglene bruker ligger i skjemaet `private`, utenfor API-et.
 - Plattform-tokens ligger i `social_account_tokens`, som bare serveren kan lese.
 
 Kundeskillet testes mot en Postgres i minnet:
@@ -51,6 +52,9 @@ npm run test:rls
 ```
 
 ## Supabase-oppsett
+
+Supabase-prosjektet er koblet til Vercel-prosjektet `mymarketing2026` gjennom Vercels
+integrasjon, som legger inn miljøvariablene. Migrasjonene i `supabase/migrations` er kjørt.
 
 I Supabase-prosjektet må appens adresse legges inn under Authentication → URL Configuration,
 både som Site URL og under Redirect URLs (`https://<domene>/auth/confirm`).
