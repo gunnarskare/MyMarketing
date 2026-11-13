@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import {useMemo,useState,useTransition} from "react";
-import {saveAssistantAnswer} from "./actions";
+import {saveAssistantAnswer,submitBrandRequests} from "./actions";
 import type {BrandProfile} from "@/lib/brand-profile";
 type Asset={id:string;kind:string;original_name:string};
 type Step={id:string;title:string;prompt:string;field?:"website_url"|"tone"|"audience"|"products"|"avoid";placeholder?:string;options?:string[]};
@@ -15,7 +15,7 @@ const steps:Step[]=[
 ];
 export function BrandAssistant({orgName,profile,assets}:{orgName:string;profile:BrandProfile|null;assets:Asset[]}) {
  const [stepIndex,setStepIndex]=useState(0),[answers,setAnswers]=useState<Record<string,string>>({}),[draft,setDraft]=useState(""),[requests,setRequests]=useState<string[]>([]),[message,setMessage]=useState(""),[done,setDone]=useState(false);
- const [pending,startTransition]=useTransition();
+ const [pending,startTransition]=useTransition();\n const [submitted,setSubmitted]=useState(false);
  const step=steps[stepIndex];
  const existing=useMemo(()=>({website:profile?.website_url??"",offer:profile?.products??"",audience:profile?.audience??"",voice:profile?.tone??"",avoid:profile?.avoid??""}),[profile]);
  const currentValue=answers[step.id]??(step.field?existing[step.id as keyof typeof existing]:"");
@@ -40,7 +40,7 @@ export function BrandAssistant({orgName,profile,assets}:{orgName:string;profile:
  </>:done?<><p className="text-xs font-bold tracking-[0.15em] text-ok uppercase">GODT JOBBET</p><h2 className="mt-3 text-2xl font-semibold">Dere har et godt utgangspunkt!</h2><p className="mt-3 leading-relaxed text-ink-soft">Nå kan vi ta tak i det visuelle uttrykket. Velg hva dere ønsker at Spott skal hjelpe med. Dere bestemmer hva som skal lages.</p>
  <div className="mt-6 grid gap-3 sm:grid-cols-2">{choices.map(item=><label key={item} className={"flex cursor-pointer items-start gap-3 rounded-2xl border p-4 text-sm font-semibold "+(requests.includes(item)?"border-ink bg-mist":"border-line")}><input type="checkbox" checked={requests.includes(item)} onChange={()=>toggleRequest(item)} className="mt-0.5 accent-[#dc2f25]"/>{item}</label>)}</div>
  <div className="mt-6 rounded-2xl border border-line p-4"><p className="font-semibold">Hva ønsker dere å gjøre med eksisterende filer?</p><p className="mt-1 text-sm text-ink-soft">Last opp logoer, bilder og fonter, eller gå videre uten dem.</p><Link href="/profil#brand-library-title" className="mt-3 inline-flex rounded-full border border-line px-4 py-2 text-sm font-semibold">Åpne filbiblioteket ↗</Link></div>
- <button type="button" onClick={()=>setMessage(requests.length?"Ønskene dine er valgt. Direkte AI-produksjon av disse leveransene blir neste utviklingssteg. Foreløpig kan du laste opp filer og redigere merkevareprofilen.":"Velg minst én oppgave, eller gå til merkevareprofilen.")} className="mt-6 w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white">Bekreft ønskene mine</button>{message?<p role="status" className="mt-3 text-sm text-ink-soft">{message}</p>:null}
+ <button type="button" disabled={pending||submitted||requests.length===0} onClick={()=>startTransition(async()=>{setMessage("");const result=await submitBrandRequests(requests);if(!result.ok){setMessage(result.message??"Kunne ikke sende ønskene.");return;}setSubmitted(true);setMessage("Takk! Ønskene er registrert på bedriftskontoen. Spott-teamet kan følge opp leveransene.");})} className="mt-6 w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white disabled:opacity-40">{pending?"Sender …":submitted?"Ønskene er sendt":"Send inn ønskene mine"}</button>{message?<p role="status" className="mt-3 text-sm text-ink-soft">{message}</p>:null}
  </>:null}
  </div></section>
  <aside className="flex flex-col gap-4"><div className="rounded-3xl border border-line bg-white p-5"><p className="text-xs font-bold tracking-[0.15em] text-spot uppercase">STATUS</p><h3 className="mt-2 text-lg font-semibold">Merkevareprofil</h3><ul className="mt-4 space-y-3 text-sm">{[{label:"Nettside",ok:!!profile?.website_url},{label:"Produkter og tjenester",ok:!!profile?.products},{label:"Målgruppe",ok:!!profile?.audience},{label:"Tone",ok:!!profile?.tone},{label:"Logo",ok:hasLogo},{label:"Skrifttyper",ok:hasFont},{label:"Bilder",ok:hasImages}].map(row=><li key={row.label} className="flex items-center justify-between gap-2"><span className="text-ink-soft">{row.label}</span><span className={row.ok?"font-semibold text-ok":"font-semibold text-ink-muted"}>{row.ok?"På plass":"Mangler"}</span></li>)}</ul><Link href="/profil" className="mt-5 inline-flex text-sm font-semibold underline underline-offset-4">Se hele profilen ↗</Link></div><div className="rounded-3xl bg-mist/80 p-5"><p className="font-semibold">Du bestemmer</p><p className="mt-2 text-sm leading-relaxed text-ink-soft">Spott foreslår og hjelper til. Ingenting publiseres eller endres visuelt uten at du godkjenner det.</p></div></aside>
