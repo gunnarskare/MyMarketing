@@ -3,7 +3,6 @@ import { isIP } from "node:net";
 import { NextRequest, NextResponse } from "next/server";
 import { requireOrg } from "@/lib/auth";
 
-export const runtime = "nodejs";
 export const maxDuration = 30;
 
 const MAX_HTML = 2_000_000;
