@@ -1,0 +1,151 @@
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+
+export const runtime = "nodejs";
+export const maxDuration = 30;
+
+const MAX_HTML = 2_000_000;
+const MAX_IMAGE = 2_500_000;
+const MAX_TOTAL = 8_000_000;
+const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+const PRIVATE_V4 = /^(0|10|127|169\.254|172\.(1[6-9]|2\d|3[01])|192\.168|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7]))\./;
+
+function isPublicIp(ip: string) {
+  if (isIP(ip) === 4) return !PRIVATE_V4.test(ip) && ip !== "255.255.255.255";
+  if (isIP(ip) === 6) {
+    const v = ip.toLowerCase();
+    return v === "::1" ? false : !(v.startsWith("fc") || v.startsWith("fd") || v.startsWith("fe80:") || v.startsWith("::ffff:"));
+  }
+  return false;
+}
+
+async function safeUrl(raw: string, base?: string) {
+  const url = new URL(raw, base);
+  if (url.protocol !== "https:" || url.username || url.password || !url.hostname || url.port && url.port !== "443") {
+    throw new Error("Bare HTTPS-adresser på offentlig nett støttes.");
+  }
+  const host = url.hostname.toLowerCase().replace(/\.$/, "");
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) {
+    throw new Error("Adressen peker mot et privat eller lokalt nettverk.");
+  }
+  const records = isIP(host) ? [{ address: host }] : await lookup(host, { all: true, verbatim: true });
+  if (!records.length || records.some(record => !isPublicIp(record.address))) {
+    throw new Error("Adressen peker mot et privat eller reservert nettverk.");
+  }
+  return url;
+}
+
+async function fetchPublic(raw: string, maxBytes: number, imageOnly = false) {
+  let url = await safeUrl(raw);
+  for (let hop = 0; hop < 4; hop++) {
+    const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(12_000), headers: { "User-Agent": "SpottBrandImporter/1.0", Accept: imageOnly ? "image/*" : "text/html,application/xhtml+xml" } });
+    if ([301, 302, 303, 307, 308].includes(response.status)) {
+      const location = response.headers.get("location");
+      if (!location) throw new Error("Ugyldig videresending fra nettsiden.");
+      url = await safeUrl(location, url.toString());
+      continue;
+    }
+    if (!response.ok) throw new Error("Nettsiden svarte med HTTP " + response.status + ".");
+    const type = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+    if (imageOnly && !IMAGE_TYPES.has(type)) throw new Error("Filtypen er ikke et støttet bildeformat.");
+    if (!imageOnly && !["text/html", "application/xhtml+xml"].includes(type)) throw new Error("Adressen leverte ikke en HTML-side.");
+    const declared = Number(response.headers.get("content-length") ?? 0);
+    if (declared > maxBytes) throw new Error("Filen er større enn tillatt grense.");
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error("Kunne ikke lese svaret fra nettsiden.");
+    const chunks: Uint8Array[] = []; let size = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) { await reader.cancel(); throw new Error("Filen er større enn tillatt grense."); }
+      chunks.push(value);
+    }
+    const bytes = Buffer.concat(chunks.map(x => Buffer.from(x)));
+    return { bytes, type, url: url.toString() };
+  }
+  throw new Error("For mange videresendinger.");
+}
+
+function decode(value: string) {
+  return value.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+}
+
+function candidatesFromHtml(html: string, pageUrl: string) {
+  const found = new Map<string, { url: string; name: string; category: string }>();
+  const add = (raw: string | undefined, name: string, category: string) => {
+    if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return;
+    try {
+      const u = new URL(decode(raw.trim()), pageUrl);
+      if (u.protocol !== "https:") return;
+      if (!/\.(jpe?g|png|webp|avif)(?:[?#]|$)/i.test(u.pathname) && !/image\/(jpeg|png|webp|avif)/i.test(u.search)) return;
+      found.set(u.toString(), { url: u.toString(), name: name.slice(0, 100) || "Nettsidebilde", category });
+    } catch { /* ignorer ugyldige bildeadresser */ }
+  };
+  for (const match of html.matchAll(/<img\b([^>]{0,4000})>/gi)) {
+    const attrs = match[1];
+    const src = attrs.match(/\b(?:src|data-src|data-lazy-src)\s*=\s*["']([^"']+)["']/i)?.[1]
+      ?? attrs.match(/\bsrc\s*=\s*([^\s>]+)/i)?.[1];
+    const name = attrs.match(/\b(?:alt|title)\s*=\s*["']([^"']*)["']/i)?.[1] ?? "Bilde fra nettsiden";
+    add(src, decode(name), /logo|brand|symbol/i.test(name + " " + (src ?? "")) ? "Logo / merke" : "Bilde");
+  }
+  for (const match of html.matchAll(/<meta\b([^>]+)>/gi)) {
+    const attrs = match[1];
+    const key = attrs.match(/\b(?:property|name)\s*=\s*["']([^"']+)["']/i)?.[1] ?? "";
+    if (/og:image|twitter:image/i.test(key)) add(attrs.match(/\bcontent\s*=\s*["']([^"']+)["']/i)?.[1], "Delingsbilde", "Profilbilde");
+  }
+  for (const match of html.matchAll(/<link\b([^>]+)>/gi)) {
+    const attrs = match[1]; const rel = attrs.match(/\brel\s*=\s*["']([^"']+)["']/i)?.[1] ?? "";
+    if (/icon|apple-touch-icon/i.test(rel)) add(attrs.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1], "Nettstedsikon", "Ikon");
+  }
+  const colors = [...new Set((html.match(/#[0-9a-f]{3,8}\b|rgba?\([^)]{3,50}\)/gi) ?? []).map(x => x.toLowerCase()))].slice(0, 30);
+  const fonts = [...new Set([...(html.match(/font-family\s*:\s*([^;{}]{2,100})/gi) ?? []), ...(html.match(/fonts\.googleapis\.com\/css2\?family=[^"'\s]+/gi) ?? [])].map(x => x.replace(/^font-family\s*:\s*/i, "").trim()))].slice(0, 12);
+  return { assets: [...found.values()].slice(0, 40), colors, fonts };
+}
+
+export async function POST(request: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Du må være logget inn." }, { status: 401 });
+  const { data: membership } = await supabase.from("organization_members").select("org_id").eq("user_id", user.id).limit(1).maybeSingle();
+  if (!membership?.org_id) return NextResponse.json({ error: "Fant ingen tilknyttet bedrift." }, { status: 403 });
+  let body: { action?: string; website?: string; selected?: { url: string; name: string; category: string }[] };
+  try { body = await request.json(); } catch { return NextResponse.json({ error: "Ugyldig forespørsel." }, { status: 400 }); }
+
+  try {
+    if (body.action === "analyze") {
+      if (typeof body.website !== "string" || body.website.length > 500) return NextResponse.json({ error: "Skriv inn en gyldig nettadresse." }, { status: 400 });
+      const start = body.website.startsWith("https://") ? body.website : "https://" + body.website;
+      const page = await fetchPublic(start, MAX_HTML);
+      const html = page.bytes.toString("utf8");
+      const parsed = candidatesFromHtml(html, page.url);
+      return NextResponse.json({ website: page.url, ...parsed });
+    }
+    if (body.action === "import") {
+      if (!Array.isArray(body.selected) || body.selected.length < 1 || body.selected.length > 15) return NextResponse.json({ error: "Velg mellom 1 og 15 bilder." }, { status: 400 });
+      let total = 0; const imported: string[] = []; const failures: string[] = [];
+      for (const item of body.selected) {
+        try {
+          const file = await fetchPublic(item.url, MAX_IMAGE, true);
+          total += file.bytes.length;
+          if (total > MAX_TOTAL) throw new Error("Samlet import kan maksimalt være 8 MB.");
+          const ext = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif" } as Record<string,string>)[file.type];
+          const name = (item.name || "nettsidebilde").replace(/[^a-zA-Z0-9æøåÆØÅ._-]/gi, "_").slice(0, 80) + "." + ext;
+          const path = membership.org_id + "/" + crypto.randomUUID() + "-" + name;
+          const { error: uploadError } = await supabase.storage.from("brand-assets").upload(path, file.bytes, { contentType: file.type, upsert: false });
+          if (uploadError) throw new Error(uploadError.message);
+          const kind = /logo|merke/i.test(item.category + " " + item.name) ? "logo" : "image";
+          const { error: dbError } = await supabase.from("brand_assets").insert({ org_id: membership.org_id, kind, original_name: name, storage_path: path, mime_type: file.type, file_size: file.bytes.length, is_primary: false });
+          if (dbError) { await supabase.storage.from("brand-assets").remove([path]); throw new Error(dbError.message); }
+          imported.push(name);
+        } catch (error) { failures.push((item.name || "Bilde") + ": " + (error instanceof Error ? error.message : "Import feilet")); }
+      }
+      return NextResponse.json({ imported, failures, count: imported.length });
+    }
+    return NextResponse.json({ error: "Ukjent handling." }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Nettsiden kunne ikke analyseres." }, { status: 400 });
+  }
+}
