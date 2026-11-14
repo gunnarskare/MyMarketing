@@ -89,7 +89,7 @@ async function DashboardContent() {
           Hei, {org.name}<span aria-hidden="true" className="ml-[0.05em] inline-block size-[0.2em] rounded-full bg-spot" />
         </h1>
         <p className="max-w-xl text-lg text-ink-soft">
-          {done === steps.length ? "Alt er klart for ukeplanen." : `${done} av ${steps.length} steg er gjort før Spott kan lage ukas innlegg.`}
+          {done === steps.length ? <>Alt er klart. <Link href="/uke" className="font-semibold text-ink underline underline-offset-4">Lag ukas utkast</Link>.</> : `${done} av ${steps.length} steg er gjort før Spott kan lage ukas innlegg.`}
         </p>
       </header>
 
@@ -133,10 +133,13 @@ async function DashboardContent() {
       </section>
 
       <section aria-labelledby="innlegg" className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <div className="flex flex-col gap-4">
-          <h2 id="innlegg" className="text-2xl font-bold tracking-tight">Innlegg</h2>
+        <div className="flex min-w-0 flex-col gap-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 id="innlegg" className="text-2xl font-bold tracking-tight">Innlegg</h2>
+            <Link href="/uke" className="text-sm font-semibold underline underline-offset-4">Åpne ukeplanen</Link>
+          </div>
           <dl className="grid grid-cols-3 gap-3">
-            {(["draft", "scheduled", "published"] as const).map((status) => (
+            {(["draft", "approved", "published"] as const).map((status) => (
               <div key={status} className="rounded-2xl border border-line p-4">
                 <dt className="text-sm text-ink-soft">{POST_STATUS[status]}</dt>
                 <dd className="mt-1 text-3xl font-extrabold tabular-nums">{counts[status] ?? 0}</dd>
@@ -158,10 +161,10 @@ async function DashboardContent() {
               ))}
             </ul>
           ) : (
-            <p className="rounded-2xl bg-mist p-5 text-ink-soft">Ingen innlegg ennå. Når profilen og analysen er klare, lager Spott ukas utkast her.</p>
+            <p className="rounded-2xl bg-mist p-5 text-ink-soft">Ingen innlegg ennå. <Link href="/uke" className="font-semibold text-ink underline underline-offset-4">Lag ukas utkast</Link> når profilen og analysen er klare.</p>
           )}
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <h2 className="text-2xl font-bold tracking-tight">Kanaler</h2>
           {accounts.length ? (
             <ul className="divide-y divide-line rounded-2xl border border-line">

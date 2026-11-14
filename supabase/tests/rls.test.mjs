@@ -321,3 +321,22 @@ test("abonnement: medlemmer kan lese sitt eget, men ingen kan endre det fra nett
     await assert.rejects(db.query(`select * from public.billing_accounts`), /permission denied/);
   });
 });
+
+test("ukeplan: én plan per uke, innlegg skilt mellom kunder, nye kvotetyper finnes", async () => {
+  let planId;
+  await as("authenticated", USER_A, async () => {
+    planId = (await db.query(`insert into public.content_plans (org_id, period_start, period_end) values ($1, '2026-11-16', '2026-11-22') returning id`, [orgA])).rows[0].id;
+    await assert.rejects(
+      db.query(`insert into public.content_plans (org_id, period_start, period_end) values ($1, '2026-11-16', '2026-11-22')`, [orgA]),
+      /duplicate key|unique/,
+    );
+    await db.query(`insert into public.posts (org_id, plan_id, platform, base_text, hashtags) values ($1, $2, 'instagram', 'Hei', '{#brød}')`, [orgA, planId]);
+    await assert.rejects(db.query(`insert into public.posts (org_id, platform, base_text) values ($1, 'tiktok', 'x')`, [orgA]), /check constraint/);
+    const { rows } = await db.query(`select public.claim_ai_quota($1, 'weekly_plan') as q`, [orgA]);
+    assert.equal(rows[0].q.allowed, true);
+  });
+  await as("authenticated", USER_B, async () => {
+    assert.equal((await db.query(`select 1 from public.posts where plan_id = $1`, [planId])).rows.length, 0);
+    assert.equal((await db.query(`update public.posts set base_text = 'kapret' where plan_id = $1 returning id`, [planId])).rows.length, 0);
+  });
+});

@@ -197,7 +197,7 @@ export default function Home() {
                 <span className="text-lg text-ink-soft">per måned, eks. mva.</span>
               </p>
               <p className="mt-4 max-w-md leading-relaxed text-ink-soft">
-                Merkevareprofil, AI-analyse av nettsiden og bibliotek for logoer og bilder. Ukeplanen med ferdige innlegg kommer snart, og er med i prisen.
+                Merkevareprofil, AI-analyse av nettsiden, bibliotek for logoer og bilder, og ukas innlegg klare til godkjenning.
               </p>
             </div>
           </div>

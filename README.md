@@ -37,6 +37,8 @@ Uten Supabase-verdiene starter appen likevel, men innlogging er slått av.
 | `src/app/(app)/kom-i-gang` | Veiviser med fem spørsmål som fyller ut profilen |
 | `src/app/(app)/profil` | Profilen, import fra nettside, logoer/bilder/fonter og typografi |
 | `src/app/(app)/merkevare` | Merkevareanalysen: lese, rette og godkjenne |
+| `src/app/(app)/uke` | Ukeplanen: lage ukas utkast, rette, godkjenne, kopiere og merke som publisert |
+| `src/app/api/weekly-plan` | Lager ukas utkast (POST) ut fra profil, analyse og bildebibliotek |
 | `src/app/api/brand-analysis` | Lager (POST), henter (GET) og lagrer (PATCH) merkevareanalysen |
 | `src/app/api/brand-intelligence` | Leser en nettside og importerer bilder til biblioteket |
 | `src/app/api/assistant` | Spørsmål til AI-assistenten (ingen side bruker den ennå) |
@@ -44,7 +46,8 @@ Uten Supabase-verdiene starter appen likevel, men innlogging er slått av.
 | `src/lib/safe-fetch.ts` | All henting fra kunders nettsider. Kan ikke nå interne adresser |
 | `src/lib/brand-crawler.ts` | Velger og henter de viktigste sidene på en nettside |
 | `src/lib/brand-assets-extract.ts` | Finner bilder, farger og fonter i HTML og CSS |
-| `src/lib/ai` | OpenAI-agentene, analyseskjemaet og kvotene |
+| `src/lib/ai` | OpenAI-agentene, analyseskjemaet, ukeplan-agenten og kvotene |
+| `src/lib/week.ts` | Uker, datoer i norsk tid og rydding av AI-utkast (testet i `tests/unit/week.test.mjs`) |
 | `src/lib/publishing` | Felles grensesnitt for Facebook, Instagram og LinkedIn |
 
 Sider som leser innloggingen har en statisk ramme og henter resten bak `<Suspense>`.
@@ -73,6 +76,8 @@ i databasen. Funksjonen teller kall de siste 24 timene og sier nei når grensen 
 | `brand_analysis` (ny merkevareanalyse) | 5 | 200 |
 | `assistant` (spørsmål til assistenten) | 60 | 2000 |
 | `website_import` (lese en nettside) | 20 | 1000 |
+| `weekly_plan` (lage ukas utkast) | 10 | 500 |
+| `post_rewrite` (skrive om ett innlegg) | 60 | 3000 |
 
 Grensene endres i migrasjonen. Sett i tillegg et månedlig budsjett i OpenAI-kontoen.
 
@@ -111,7 +116,7 @@ Funksjonene kjører i Stockholm (`arn1`), samme område som databasen.
 ## Status
 
 - [x] Fase 0: prosjekt, datamodell, adapter-grensesnitt
-- [ ] Fase 1: innlogging, bedrift, profil, bibliotek, typografi og AI-merkevareanalyse er bygget. Gjenstår: ukeplan og utkast
+- [x] Fase 1: innlogging, bedrift, profil, bibliotek, typografi, AI-merkevareanalyse, abonnement og ukas utkast
 - [ ] Fase 2: Facebook-side og LinkedIn
 - [ ] Fase 3: godkjenning, kø og jobbkjører
 - [ ] Fase 4: Instagram og bilder

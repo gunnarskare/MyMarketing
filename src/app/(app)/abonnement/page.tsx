@@ -15,7 +15,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 const INCLUDED = [
   "Merkevareprofil og AI-analyse av nettsiden",
   "Bibliotek for logoer, bilder og fonter",
-  "Ukas innlegg til Facebook, Instagram og LinkedIn, klare til godkjenning (kommer snart)",
+  "Ukas innlegg til Facebook, Instagram og LinkedIn, klare til godkjenning",
   "Ingen bindingstid. Si opp når du vil, og behold tilgangen ut perioden",
 ];
 

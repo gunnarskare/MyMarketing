@@ -1,13 +1,15 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type QuotaType = "brand_analysis" | "assistant" | "website_import";
+export type QuotaType = "brand_analysis" | "assistant" | "website_import" | "weekly_plan" | "post_rewrite";
 export type QuotaResult = { allowed: true; remaining: number } | { allowed: false; message: string };
 
 const LABELS: Record<QuotaType, string> = {
   brand_analysis: "merkevareanalyser",
   assistant: "spørsmål til assistenten",
   website_import: "nettsideanalyser",
+  weekly_plan: "ukeplaner",
+  post_rewrite: "omskrivinger",
 };
 
 function inTime(seconds: number): string {

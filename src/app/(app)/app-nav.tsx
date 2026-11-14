@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 
 const LINKS = [
   { href: "/dashboard", label: "Oversikt" },
+  { href: "/uke", label: "Ukeplan" },
   { href: "/profil", label: "Profil" },
   { href: "/merkevare", label: "Analyse" },
   { href: "/kom-i-gang", label: "Kom i gang" },
