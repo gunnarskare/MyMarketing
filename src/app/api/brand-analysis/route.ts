@@ -46,7 +46,7 @@ export async function POST() {
     if (!hasAccess(await getBillingAccount(ctx.supabase, ctx.org.id))) return NextResponse.json({ error: PAYWALL_MESSAGE }, { status: 402 });
     const quota = await claimQuota(ctx.supabase, ctx.org.id, "brand_analysis");
     if (!quota.allowed) return NextResponse.json({ error: quota.message }, { status: 429 });
-    const result = await regenerateBrandAnalysis(ctx.supabase, ctx.org, profile);
+    const result = await regenerateBrandAnalysis(ctx.supabase, ctx.org, profile, quota.runId);
     return NextResponse.json({ ...result, remaining: quota.remaining });
   } catch (error) {
     console.error("Brand analysis refresh failed:", error instanceof Error ? error.message : "Unknown error");

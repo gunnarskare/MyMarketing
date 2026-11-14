@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { run } from "@openai/agents";
 import { createSpottAssistant } from "@/lib/ai/agents/spott-assistant";
 import { loadBrandAnalysis } from "@/lib/ai/brand-analysis-cache";
 import { ensureOpenAIConfigured } from "@/lib/ai/openai-client";
 import { claimQuota } from "@/lib/ai/quota";
+import { runAndRecordUsage } from "@/lib/ai/usage";
 import { requireOrg } from "@/lib/auth";
 import { isTimeout } from "@/lib/public-error";
 import { getBillingAccount, hasAccess, PAYWALL_MESSAGE } from "@/lib/billing";
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       organizationName: org.name, websiteUrl: profile?.website_url, tone: profile?.tone, audience: profile?.audience,
       products: profile?.products, avoid: profile?.avoid, language: profile?.language, brandAnalysis: brand.analysis,
     });
-    const result = await run(agent, body.message.trim(), { signal: AbortSignal.timeout(50_000) });
+    const result = await runAndRecordUsage(quota.runId, agent, body.message.trim(), { signal: AbortSignal.timeout(50_000) });
     if (typeof result.finalOutput !== "string" || !result.finalOutput.trim()) {
       return NextResponse.json({ error: "Spott klarte ikke å lage et svar. Prøv igjen." }, { status: 502 });
     }

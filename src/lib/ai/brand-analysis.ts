@@ -1,6 +1,7 @@
 import "server-only";
-import { Agent, run } from "@openai/agents";
+import { Agent } from "@openai/agents";
 import { brandAnalysisSchema, type BrandAnalysis } from "@/lib/ai/brand-analysis-schema";
+import { runAndRecordUsage } from "@/lib/ai/usage";
 
 const agent = new Agent({
   name: "Spott Brand Strategist",
@@ -23,9 +24,9 @@ export async function generateBrandAnalysis(input: {
   organizationName:string; websiteUrl:string;
   profile:{tone?:string|null; audience?:string|null; products?:string|null; avoid?:string|null; language?:string|null};
   pages:{url:string;text:string}[];
-}): Promise<BrandAnalysis> {
+}, aiRunId: string | null): Promise<BrandAnalysis> {
   const source = input.pages.map(p => "KILDE: " + p.url + "\n" + p.text).join("\n\n").slice(0,45000);
-  const result = await run(agent, [
+  const result = await runAndRecordUsage(aiRunId, agent, [
     "BEDRIFT: " + input.organizationName,
     "NETTSIDE: " + input.websiteUrl,
     "EKSISTERENDE PROFIL: " + JSON.stringify(input.profile),

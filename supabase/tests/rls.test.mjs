@@ -322,6 +322,42 @@ test("abonnement: medlemmer kan lese sitt eget, men ingen kan endre det fra nett
   });
 });
 
+test("AI-forbruk: kvoten gir id-en til raden, og bare serveren kan føre modell, tokens og kostnad", async () => {
+  const runId = await as("authenticated", USER_A, async () => {
+    const { rows } = await db.query(`select public.claim_ai_quota($1, 'assistant') as q`, [orgA]);
+    assert.equal(rows[0].q.allowed, true);
+    const id = rows[0].q.run_id;
+    assert.match(id, /^[0-9a-f-]{36}$/);
+    const own = await db.query(`select model, tokens, cost from public.ai_runs where id = $1`, [id]);
+    assert.deepEqual(own.rows[0], { model: "claimed", tokens: 0, cost: "0.000000" });
+    // Brukeren kan verken føre forbruket selv eller endre raden.
+    await assert.rejects(db.query(`select public.record_ai_usage($1, 'gpt-5.6-luna', 1, 0)`, [id]), /permission denied/);
+    await assert.rejects(db.query(`update public.ai_runs set tokens = 0, cost = 0 where id = $1`, [id]), /permission denied/);
+    await assert.rejects(db.query(`delete from public.ai_runs where id = $1`, [id]), /permission denied/);
+    return id;
+  });
+  await as("anon", null, async () => {
+    await assert.rejects(db.query(`select public.record_ai_usage($1, 'gpt-5.6-luna', 1, 0)`, [runId]), /permission denied/);
+  });
+  await as("service_role", null, async () => {
+    await assert.rejects(db.query(`select public.record_ai_usage($1, 'gpt-5.6-luna', -1, 0)`, [runId]), /ai_runs_usage_values/);
+    await assert.rejects(db.query(`select public.record_ai_usage($1, 'claimed', 1, 0)`, [runId]), /Invalid model/);
+    const first = await db.query(`select public.record_ai_usage($1, 'gpt-5.6-luna-2026-07-30', 1500, 0.000384) as ok`, [runId]);
+    assert.equal(first.rows[0].ok, true);
+    // Hver rad føres én gang.
+    const again = await db.query(`select public.record_ai_usage($1, 'gpt-5.6-luna', 1, 0) as ok`, [runId]);
+    assert.equal(again.rows[0].ok, false);
+  });
+  await as("authenticated", USER_A, async () => {
+    const { rows } = await db.query(`select model, tokens, cost from public.ai_runs where id = $1`, [runId]);
+    assert.deepEqual(rows[0], { model: "gpt-5.6-luna-2026-07-30", tokens: 1500, cost: "0.000384" });
+  });
+  // Andre kunder ser ikke raden.
+  await as("authenticated", USER_B, async () => {
+    assert.equal((await db.query(`select 1 from public.ai_runs where id = $1`, [runId])).rows.length, 0);
+  });
+});
+
 test("ukeplan: én plan per uke, innlegg skilt mellom kunder, nye kvotetyper finnes", async () => {
   let planId;
   await as("authenticated", USER_A, async () => {

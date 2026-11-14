@@ -60,10 +60,10 @@ export async function loadBrandAnalysis(
 
 /**
  * Henter nettsiden, lager en ny analyse med AI og lagrer den. Erstatter den gamle, også en godkjent.
- * Kalles bare når brukeren ber om det. Kvoten sjekkes av den som kaller.
+ * Kalles bare når brukeren ber om det. Kvoten sjekkes av den som kaller, og aiRunId er raden kvoten opprettet.
  */
 export async function regenerateBrandAnalysis(
-  supabase: SupabaseClient, org: { id: string; name: string }, profile: ProfileInput | null,
+  supabase: SupabaseClient, org: { id: string; name: string }, profile: ProfileInput | null, aiRunId: string | null,
 ): Promise<StoredAnalysis> {
   const websiteUrl = profile?.website_url?.trim() || null;
   if (!websiteUrl) throw new PublicError("Legg inn nettsiden i profilen før analysen lages.");
@@ -79,7 +79,7 @@ export async function regenerateBrandAnalysis(
     websiteUrl,
     profile: { tone: profile?.tone, audience: profile?.audience, products: profile?.products, avoid: profile?.avoid, language: profile?.language },
     pages,
-  });
+  }, aiRunId);
 
   const now = new Date().toISOString();
   const status = analysis.quality.requiresHumanReview || analysis.quality.confidence === "low" ? "needs_review" : "ready";

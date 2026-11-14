@@ -99,7 +99,7 @@ export async function rewritePost(id: string, instruction: string): Promise<Acti
       platform: post.platform,
       topic: post.topic ?? "",
       text: post.base_text,
-    }, instruction.trim());
+    }, instruction.trim(), quota.runId);
     const text = draft.text.trim().slice(0, 3000);
     if (!text) return { ok: false, message: "AI-en laget ikke noe brukbart. Prøv igjen." };
     const { data, error } = await supabase.from("posts").update({

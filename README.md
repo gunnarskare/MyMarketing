@@ -81,6 +81,10 @@ i databasen. Funksjonen teller kall de siste 24 timene og sier nei når grensen 
 
 Grensene endres i migrasjonen. Sett i tillegg et månedlig budsjett i OpenAI-kontoen.
 
+Hvert kall får en rad i `ai_runs`. Når OpenAI har svart, fører serveren på modellen som svarte, antall
+tokens (input + output) og anslått kostnad i USD etter pristabellen i `src/lib/ai/pricing.ts`. Det skjer
+med service-nøkkelen (`record_ai_usage`), så brukerne kan lese radene til egen bedrift, men ikke endre dem.
+
 ## Betaling (Stripe)
 
 - Produktet «Spott» har én månedspris med oppslagsnøkkelen `spott_monthly_nok` (2 990 kr eks. mva.).

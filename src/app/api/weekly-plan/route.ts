@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
   try {
     ensureOpenAIConfigured();
-    const drafts = await generateWeeklyDrafts(brand, { days: week.days, platforms: platforms as Platform[], count, weekNumber: isoWeek(week.start) });
+    const drafts = await generateWeeklyDrafts(brand, { days: week.days, platforms: platforms as Platform[], count, weekNumber: isoWeek(week.start) }, quota.runId);
     const posts = cleanDrafts(drafts, { days: week.days, platforms: platforms as Platform[], assetIds: brand.assets.map((a) => a.id), max: count });
     if (!posts.length) return NextResponse.json({ error: "AI-en laget ingen brukbare innlegg. Prøv igjen." }, { status: 502 });
 
