@@ -13,6 +13,6 @@ export const company: {
   legalName: "S&S Marketing AS",
   // Harde mellomrom, så nummeret ikke deles over to linjer.
   orgNumber: "930\u00a0641\u00a0340",
-  email: null,
+  email: "hei@spott.no",
   address: null,
 };
