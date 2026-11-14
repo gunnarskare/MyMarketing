@@ -6,13 +6,13 @@ export type SpottBrandContext = {
 };
 export function createSpottAssistant(context:SpottBrandContext) {
   const brandContext=[
-    "Bedrift: "+context.organizationName,
-    context.websiteUrl?"Nettside: "+context.websiteUrl:null,
-    context.tone?"Merkevare og tone: "+context.tone:null,
-    context.audience?"Målgruppe: "+context.audience:null,
-    context.products?"Produkter og tjenester: "+context.products:null,
-    context.avoid?"Dette skal unngås: "+context.avoid:null,
-    context.brandAnalysis?"STRUKTURERT MERKEVAREGRUNNLAG (grunnmur for alt arbeid):\n"+JSON.stringify(context.brandAnalysis):null
+    "Bedrift: "+context.organizationName.slice(0,120),
+    context.websiteUrl?"Nettside: "+context.websiteUrl.slice(0,500):null,
+    context.tone?"Merkevare og tone: "+context.tone.slice(0,2000):null,
+    context.audience?"Målgruppe: "+context.audience.slice(0,2000):null,
+    context.products?"Produkter og tjenester: "+context.products.slice(0,2000):null,
+    context.avoid?"Dette skal unngås: "+context.avoid.slice(0,2000):null,
+    context.brandAnalysis?"STRUKTURERT MERKEVAREGRUNNLAG (grunnmur for alt arbeid):\n"+JSON.stringify(context.brandAnalysis).slice(0,60000):null
   ].filter(Boolean).join("\n");
   return new Agent({
     name:"Spott Marketing Assistant",

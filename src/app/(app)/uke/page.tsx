@@ -9,6 +9,9 @@ import { WeekPlanner, type WeekOption } from "./week-planner";
 
 export const metadata: Metadata = { title: "Ukeplan" };
 
+// Gjelder også omskriving av innlegg, som kjøres som server action fra denne siden.
+export const maxDuration = 90;
+
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 const MONTHS = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];

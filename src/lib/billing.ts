@@ -43,6 +43,13 @@ export async function syncSubscription(subscription: Stripe.Subscription, orgIdH
   }
   if (!orgId) throw new Error(`Fant ingen bedrift for Stripe-kunden ${customerId}.`);
 
+  // En forsinket hendelse om et gammelt, avsluttet abonnement skal ikke overskrive et nyere som er aktivt.
+  const { data: current } = await admin.from("billing_accounts").select("stripe_subscription_id,status").eq("org_id", orgId).maybeSingle();
+  if (current?.stripe_subscription_id && current.stripe_subscription_id !== subscription.id
+    && PAID.has(current.status as BillingStatus) && !PAID.has(subscription.status as BillingStatus)) {
+    return;
+  }
+
   const item = subscription.items.data[0];
   const { error } = await admin.from("billing_accounts").upsert({
     org_id: orgId,

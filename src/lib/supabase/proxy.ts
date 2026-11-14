@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isSupabaseConfigured, supabaseKey, supabaseUrl } from "./config";
+import { cookieOptions, isSupabaseConfigured, supabaseKey, supabaseUrl } from "./config";
 
 /** Sider som er åpne for alle. Alt annet krever innlogging. */
 // Stripe-webhooken må nås uten innlogging. Den sjekker Stripe-signaturen selv.
@@ -32,6 +32,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookieOptions,
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -53,6 +54,12 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!signedIn && !isPublicPath(pathname)) {
+    // API-kall får et tydelig svar i stedet for innloggingssiden, så appen kan si fra at økten er utløpt.
+    if (pathname.startsWith("/api/")) {
+      const denied = NextResponse.json({ error: "Du er logget ut. Last siden på nytt og logg inn igjen." }, { status: 401 });
+      response.cookies.getAll().forEach((cookie) => denied.cookies.set(cookie));
+      return denied;
+    }
     return redirectTo(request, "/login", response);
   }
   if (signedIn && GUEST_ONLY_PATHS.includes(pathname)) {

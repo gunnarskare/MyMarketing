@@ -11,3 +11,9 @@ export const supabaseKey =
 export function isSupabaseConfigured(): boolean {
   return supabaseUrl !== "" && supabaseKey !== "";
 }
+
+/**
+ * Innloggingscookien sendes bare over https i produksjon.
+ * (Den kan ikke være HttpOnly: Supabase i nettleseren må lese den for å laste opp filer.)
+ */
+export const cookieOptions = { secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/" };

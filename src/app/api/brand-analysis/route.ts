@@ -5,6 +5,10 @@ import { brandAnalysisSchema } from "@/lib/ai/brand-analysis-schema";
 import { claimQuota } from "@/lib/ai/quota";
 import { requireOrg } from "@/lib/auth";
 import { getBillingAccount, hasAccess, PAYWALL_MESSAGE } from "@/lib/billing";
+import { isTimeout, publicMessage } from "@/lib/public-error";
+
+// Henting av nettsiden (opptil 30 s) og AI-analysen (opptil 150 s).
+export const maxDuration = 240;
 
 async function context() {
   try {
@@ -27,7 +31,8 @@ export async function GET() {
   try {
     return NextResponse.json(await loadBrandAnalysis(ctx.supabase, ctx.org, await readProfile(ctx)));
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Kunne ikke hente analysen." }, { status: 500 });
+    console.error("Brand analysis read failed:", error instanceof Error ? error.message : "Unknown error");
+    return NextResponse.json({ error: "Kunne ikke hente analysen." }, { status: 500 });
   }
 }
 
@@ -47,7 +52,8 @@ export async function POST() {
     console.error("Brand analysis refresh failed:", error instanceof Error ? error.message : "Unknown error");
     const message = error instanceof Error ? error.message : "";
     if (message.includes("OPENAI_API_KEY")) return NextResponse.json({ error: "AI-tjenesten er ikke satt opp på serveren." }, { status: 503 });
-    return NextResponse.json({ error: message || "Kunne ikke lage analysen." }, { status: 502 });
+    if (isTimeout(error)) return NextResponse.json({ error: "Analysen tok for lang tid. Prøv igjen." }, { status: 504 });
+    return NextResponse.json({ error: publicMessage(error, "Spott klarte ikke å lage analysen. Prøv igjen.") }, { status: 502 });
   }
 }
 

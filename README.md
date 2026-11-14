@@ -91,11 +91,24 @@ Grensene endres i migrasjonen. Sett i tillegg et månedlig budsjett i OpenAI-kon
   `complimentary = true` i `billing_accounts` for gratis tilgang.
 - Miljøvariabler: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SECRET_KEY` (eller `SUPABASE_SERVICE_ROLE_KEY`).
 
+## Sikkerhet
+
+- **Kundeskillet** ligger i databasen (radnivåsikkerhet), ikke bare i appen. Uinnloggede har ingen tilganger.
+- **Grenser i databasen**: tekstlengder, størrelse på analysen og maks 300 filer per bedrift i biblioteket
+  (`20261114110000_abuse_limits.sql`). De gjelder også for den som snakker rett med databasen.
+- **AI-kall** har kvote (se over), tidsgrense og kappet inndata, så ett kall aldri kan bli uvanlig dyrt.
+- **Feilmeldinger** til brukeren er bare de som er skrevet for brukeren (`src/lib/public-error.ts`).
+  Alt annet logges på serveren og vises som en nøytral melding.
+- **Sikkerhetshoder** (CSP, X-Frame-Options med flere) settes i `next.config.ts`. Skal siden hente noe fra
+  et nytt domene (skript, bilder, fonter), må domenet legges til der.
+- **Henting fra kunders nettsider** går alltid gjennom `src/lib/safe-fetch.ts`.
+- API-kall uten innlogging får `401` som JSON. Sider sendes til `/login`.
+
 ## Tester
 
 ```bash
 npm test            # alt
-npm run test:unit   # henting, crawler og uttrekk (uten nettverk)
+npm run test:unit   # henting, crawler, uttrekk, uker og feilmeldinger (uten nettverk)
 npm run test:rls    # kundeskillet, mot en Postgres i minnet
 ```
 

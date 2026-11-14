@@ -4,8 +4,12 @@ import { claimQuota } from "@/lib/ai/quota";
 import { generateWeeklyDrafts } from "@/lib/ai/weekly-plan";
 import { requireOrg } from "@/lib/auth";
 import { getBillingAccount, hasAccess, PAYWALL_MESSAGE } from "@/lib/billing";
+import { isTimeout } from "@/lib/public-error";
 import { loadBrandContext, MissingBrandError } from "@/lib/weekly-plan-context";
 import { cleanDrafts, isoWeek, osloToUtc, planningWeek, PLATFORMS, type Platform, type WeekChoice } from "@/lib/week";
+
+// AI-en får opptil to minutter på å skrive uka.
+export const maxDuration = 180;
 
 /** Lager ukas utkast. Erstatter utkast som ikke er godkjent; godkjente og publiserte innlegg blir stående. */
 export async function POST(request: Request) {
@@ -57,8 +61,9 @@ export async function POST(request: Request) {
       .select("id").single();
     if (planError || !plan) throw new Error("Kunne ikke lagre planen.");
 
-    const { error: deleteError } = await supabase.from("posts").delete().eq("org_id", org.id).eq("plan_id", plan.id).eq("status", "draft");
-    if (deleteError) throw new Error("Kunne ikke fjerne gamle utkast.");
+    // De nye innleggene lagres før de gamle utkastene fjernes. Feiler lagringen, står de gamle igjen.
+    const { data: oldDrafts, error: oldError } = await supabase.from("posts").select("id").eq("org_id", org.id).eq("plan_id", plan.id).eq("status", "draft");
+    if (oldError) throw new Error("Kunne ikke lese de gamle utkastene.");
 
     const { error: insertError } = await supabase.from("posts").insert(posts.map((post) => ({
       org_id: org.id,
@@ -76,11 +81,19 @@ export async function POST(request: Request) {
     })));
     if (insertError) throw new Error("Kunne ikke lagre innleggene.");
 
+    const oldIds = (oldDrafts ?? []).map((row) => row.id);
+    if (oldIds.length) {
+      const { error: deleteError } = await supabase.from("posts").delete().eq("org_id", org.id).eq("status", "draft").in("id", oldIds);
+      // Ikke kritisk: de nye er lagret. Brukeren kan slette de gamle selv.
+      if (deleteError) console.error("Weekly plan: old drafts not removed:", deleteError.message);
+    }
+
     return NextResponse.json({ week: week.start, count: posts.length, remaining: quota.remaining });
   } catch (error) {
     console.error("Weekly plan failed:", error instanceof Error ? error.message : error);
     const message = error instanceof Error ? error.message : "";
     if (message.includes("OPENAI_API_KEY")) return NextResponse.json({ error: "AI-tjenesten er ikke satt opp på serveren." }, { status: 503 });
+    if (isTimeout(error)) return NextResponse.json({ error: "Det tok for lang tid å skrive innleggene. Prøv igjen, gjerne med færre innlegg." }, { status: 504 });
     return NextResponse.json({ error: message.startsWith("Kunne ikke") ? message : "Spott klarte ikke å lage utkastene. Prøv igjen." }, { status: 502 });
   }
 }

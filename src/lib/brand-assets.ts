@@ -50,7 +50,12 @@ export async function storeBrandAsset(
   const mime = normalizeMime(input.mime);
   const path = `${input.orgId}/${randomUUID()}-${safeFileName(input.name)}`;
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, input.bytes, { contentType: mime, upsert: false });
-  if (uploadError) throw new Error("Lagringen avviste filen: " + uploadError.message);
+  if (uploadError) {
+    // Lagringen sier nei når biblioteket er fullt (300 filer per bedrift).
+    if (/row-level security|policy/i.test(uploadError.message)) throw new Error("Biblioteket er fullt. Slett filer du ikke bruker, og prøv igjen.");
+    console.error("Brand asset upload failed:", uploadError.message);
+    throw new Error("Lagringen avviste filen.");
+  }
 
   const { data, error } = await supabase
     .from("brand_assets")

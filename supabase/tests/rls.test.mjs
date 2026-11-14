@@ -340,3 +340,36 @@ test("ukeplan: én plan per uke, innlegg skilt mellom kunder, nye kvotetyper fin
     assert.equal((await db.query(`update public.posts set base_text = 'kapret' where plan_id = $1 returning id`, [planId])).rows.length, 0);
   });
 });
+
+test("grenser: for store tekster avvises, og biblioteket tar maks 300 filer per bedrift", async () => {
+  await as("authenticated", USER_A, async () => {
+    await assert.rejects(
+      db.query(`update public.brand_profiles set tone = repeat('a', 4001) where org_id = $1`, [orgA]),
+      /brand_profiles_text_lengths/,
+    );
+    await assert.rejects(
+      db.query(`insert into public.posts (org_id, base_text, topic) values ($1, 'tekst', repeat('a', 301))`, [orgA]),
+      /posts_meta_lengths/,
+    );
+    await assert.rejects(
+      db.query(`insert into public.brand_analyses (org_id, analysis) values ($1, jsonb_build_object('x', repeat('a', 300001)))`, [orgA]),
+      /brand_analyses_size|duplicate key/,
+    );
+  });
+  // Fyll mappa til grensen som eier, og prøv så én til som bruker.
+  const before = (await db.query(`select count(*)::int as n from storage.objects where name like $1 || '/%'`, [orgA])).rows[0].n;
+  await db.query(
+    `insert into storage.objects (bucket_id, name) select 'brand-assets', $1 || '/fyll-' || g || '.png' from generate_series(1, $2::int) g`,
+    [orgA, 300 - before],
+  );
+  await as("authenticated", USER_A, async () => {
+    await assert.rejects(
+      db.query(`insert into storage.objects (bucket_id, name) values ('brand-assets', $1 || '/en-for-mye.png')`, [orgA]),
+      /row-level security/,
+    );
+  });
+  // Den andre bedriften er ikke berørt.
+  await as("authenticated", USER_B, async () => {
+    await db.query(`insert into storage.objects (bucket_id, name) values ('brand-assets', $1 || '/egen.png')`, [orgB]);
+  });
+});

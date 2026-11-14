@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Notice } from "@/components/notice";
+import { requestJson } from "@/lib/api-client";
 import { ASSETS_CHANGED } from "./brand-library";
 
 type Candidate = { url: string; name: string; category: string; sourcePage?: string };
@@ -33,13 +34,11 @@ export function BrandWebsiteImporter({ defaultWebsite }: { defaultWebsite: strin
     setAnalysis(null);
     setSelected([]);
     try {
-      const response = await fetch("/api/brand-intelligence", {
+      const data = await requestJson<Analysis>("/api/brand-intelligence", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "analyze", website }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Kunne ikke lese nettsiden.");
+      }, "Kunne ikke lese nettsiden. Prøv igjen.");
       setAnalysis(data);
       // Logoer er det folk oftest vil ha. Resten velger de selv.
       setSelected(data.assets.filter((a: Candidate) => a.category === "Logo").slice(0, MAX_IMPORT).map((a: Candidate) => a.url));
@@ -57,16 +56,14 @@ export function BrandWebsiteImporter({ defaultWebsite }: { defaultWebsite: strin
     setMessages([]);
     setFailures([]);
     try {
-      const response = await fetch("/api/brand-intelligence", {
+      const data = await requestJson<{ count: number; duplicates?: string[]; failures?: string[] }>("/api/brand-intelligence", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "import",
           selected: analysis.assets.filter((a) => selected.includes(a.url)).map(({ url, name, category }) => ({ url, name, category })),
         }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Importen feilet.");
+      }, "Importen feilet. Prøv igjen.");
       const result: Message[] = [];
       if (data.count) result.push({ tone: "success", text: data.count === 1 ? "1 fil er lagt i biblioteket." : `${data.count} filer er lagt i biblioteket.` });
       if (data.duplicates?.length) result.push({ tone: "info", text: `${data.duplicates.length} ${data.duplicates.length === 1 ? "fil lå" : "filer lå"} der fra før.` });

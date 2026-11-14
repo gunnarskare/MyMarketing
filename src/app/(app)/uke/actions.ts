@@ -5,6 +5,7 @@ import { claimQuota } from "@/lib/ai/quota";
 import { rewriteDraft } from "@/lib/ai/weekly-plan";
 import { requireOrg } from "@/lib/auth";
 import { getBillingAccount, hasAccess, PAYWALL_MESSAGE } from "@/lib/billing";
+import { isTimeout } from "@/lib/public-error";
 import { loadBrandContext, MissingBrandError } from "@/lib/weekly-plan-context";
 import { DAYS, normalizeHashtags, normalizeTime, osloParts, osloToUtc, type Platform } from "@/lib/week";
 
@@ -16,13 +17,27 @@ export type ActionResult = { ok: true; post?: PostRow } | { ok: false; message: 
 
 const COLUMNS = "id,platform,topic,pillar,base_text,hashtags,image_idea,asset_id,status,scheduled_at,published_at";
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const NOT_FOUND: ActionResult = { ok: false, message: "Fant ikke innlegget." };
+
+// Server actions kan kalles med hva som helst fra nettleseren, så alt sjekkes her.
+function validDate(value: unknown): value is string {
+  if (typeof value !== "string" || !DATE.test(value)) return false;
+  const [y, m, d] = value.split("-").map(Number);
+  const parsed = new Date(Date.UTC(y, m - 1, d));
+  return y >= 2020 && y <= 2100 && parsed.getUTCMonth() === m - 1 && parsed.getUTCDate() === d;
+}
 
 export async function savePost(id: string, input: { text: string; hashtags: string; date: string; time: string }): Promise<ActionResult> {
+  if (typeof id !== "string" || !UUID.test(id)) return NOT_FOUND;
+  if (!input || typeof input.text !== "string" || typeof input.hashtags !== "string" || typeof input.time !== "string" || input.hashtags.length > 1000) {
+    return { ok: false, message: "Ugyldig innhold." };
+  }
   const { supabase, org } = await requireOrg();
   const text = input.text.trim();
   if (!text) return { ok: false, message: "Innlegget kan ikke være tomt." };
   if (text.length > 3000) return { ok: false, message: "Innlegget kan ha opptil 3000 tegn." };
-  if (!DATE.test(input.date)) return { ok: false, message: "Velg en gyldig dato." };
+  if (!validDate(input.date)) return { ok: false, message: "Velg en gyldig dato." };
   const { data: current } = await supabase.from("posts").select("platform").eq("org_id", org.id).eq("id", id).maybeSingle();
   if (!current) return { ok: false, message: "Fant ikke innlegget." };
   const hashtags = normalizeHashtags(input.hashtags.split(/[\s,]+/), current.platform === "instagram" ? 15 : 5);
@@ -37,8 +52,9 @@ export async function savePost(id: string, input: { text: string; hashtags: stri
 }
 
 export async function setPostStatus(id: string, status: "draft" | "approved" | "published"): Promise<ActionResult> {
-  const { supabase, org } = await requireOrg();
+  if (typeof id !== "string" || !UUID.test(id)) return NOT_FOUND;
   if (!["draft", "approved", "published"].includes(status)) return { ok: false, message: "Ugyldig status." };
+  const { supabase, org } = await requireOrg();
   const { data, error } = await supabase.from("posts").update({
     status,
     published_at: status === "published" ? new Date().toISOString() : null,
@@ -49,6 +65,7 @@ export async function setPostStatus(id: string, status: "draft" | "approved" | "
 }
 
 export async function deletePost(id: string): Promise<ActionResult> {
+  if (typeof id !== "string" || !UUID.test(id)) return NOT_FOUND;
   const { supabase, org } = await requireOrg();
   const { error } = await supabase.from("posts").delete().eq("org_id", org.id).eq("id", id);
   return error ? { ok: false, message: "Kunne ikke slette innlegget." } : { ok: true };
@@ -56,6 +73,8 @@ export async function deletePost(id: string): Promise<ActionResult> {
 
 /** Skriver om ett innlegg med AI. Dag, klokkeslett og kanal beholdes. */
 export async function rewritePost(id: string, instruction: string): Promise<ActionResult> {
+  if (typeof id !== "string" || !UUID.test(id)) return NOT_FOUND;
+  if (typeof instruction !== "string") return { ok: false, message: "Ugyldig ønske." };
   const { supabase, org } = await requireOrg();
   if (instruction.length > 300) return { ok: false, message: "Ønsket kan ha opptil 300 tegn." };
   if (!hasAccess(await getBillingAccount(supabase, org.id))) return { ok: false, message: PAYWALL_MESSAGE };
@@ -96,6 +115,7 @@ export async function rewritePost(id: string, instruction: string): Promise<Acti
     return { ok: true, post: data as PostRow };
   } catch (error) {
     console.error("Rewrite failed:", error instanceof Error ? error.message : error);
+    if (isTimeout(error)) return { ok: false, message: "Omskrivingen tok for lang tid. Prøv igjen." };
     return { ok: false, message: "Spott klarte ikke å skrive om innlegget. Prøv igjen." };
   }
 }

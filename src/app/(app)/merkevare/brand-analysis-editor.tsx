@@ -3,8 +3,20 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Notice } from "@/components/notice";
+import { requestJson } from "@/lib/api-client";
 import { ENUM_FIELDS, SECTIONS, fieldLabel, type SectionKey } from "@/lib/ai/brand-analysis-labels";
 import type { BrandAnalysis } from "@/lib/ai/brand-analysis-schema";
+
+/** Bare vanlige nettadresser blir lenker. Alt annet (ugyldig tekst, javascript:-adresser) hoppes over. */
+function webUrl(value: unknown): URL | null {
+  if (typeof value !== "string") return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url : null;
+  } catch {
+    return null;
+  }
+}
 
 type Status = "ready" | "needs_review" | "approved" | "not_created";
 type Path = (string | number)[];
@@ -230,13 +242,11 @@ export function BrandAnalysisEditor(props: Props) {
     setSaving(true);
     setMessage(null);
     try {
-      const response = await fetch("/api/brand-analysis", {
+      const result = await requestJson<{ status: Status; approvedAt: string | null; stale?: boolean }>("/api/brand-analysis", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ analysis, approved: approve }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Lagringen feilet.");
+      }, "Lagringen feilet. Prøv igjen.");
       setStatus(result.status);
       setApprovedAt(result.approvedAt);
       if (result.stale === false) setStale(false);
@@ -258,9 +268,9 @@ export function BrandAnalysisEditor(props: Props) {
     setGenerating(true);
     setMessage({ tone: "info", text: "Spott leser nettsiden og skriver analysen. Det tar som regel ett til to minutter." });
     try {
-      const response = await fetch("/api/brand-analysis", { method: "POST" });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Kunne ikke lage analysen.");
+      const result = await requestJson<{ analysis: BrandAnalysis; status: Status; analyzedAt: string | null; sourcePages?: { url: string; depth: number }[]; remaining?: number }>(
+        "/api/brand-analysis", { method: "POST" }, "Kunne ikke lage analysen. Prøv igjen.",
+      );
       setAnalysis(result.analysis);
       setStatus(result.status);
       setApprovedAt(null);
@@ -376,14 +386,14 @@ export function BrandAnalysisEditor(props: Props) {
       <section className="rounded-3xl border border-line p-5 sm:p-7">
         <h3 className="font-bold">Kilder</h3>
         <p className="mt-1 text-sm text-ink-soft">
-          Laget fra {sourcePages.length} {sourcePages.length === 1 ? "side" : "sider"} på {props.websiteUrl ? new URL(props.websiteUrl).hostname : "nettsiden"}
+          Laget fra {sourcePages.length} {sourcePages.length === 1 ? "side" : "sider"} på {webUrl(props.websiteUrl)?.hostname ?? "nettsiden"}
           {props.model ? ` med ${props.model}` : ""}.
         </p>
         <ul className="mt-3 flex flex-wrap gap-2">
-          {sourcePages.slice(0, 12).map((page) => (
-            <li key={page.url} className="min-w-0 max-w-full">
-              <a href={page.url} target="_blank" rel="noreferrer" className="block truncate rounded-full bg-mist px-3 py-1.5 text-xs font-medium underline underline-offset-2">
-                {new URL(page.url).pathname}
+          {sourcePages.slice(0, 12).map((page) => webUrl(page?.url)).filter((url) => url !== null).map((url) => (
+            <li key={url.href} className="min-w-0 max-w-full">
+              <a href={url.href} target="_blank" rel="noreferrer" className="block truncate rounded-full bg-mist px-3 py-1.5 text-xs font-medium underline underline-offset-2">
+                {url.pathname}
               </a>
             </li>
           ))}

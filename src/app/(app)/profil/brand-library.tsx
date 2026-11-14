@@ -89,7 +89,10 @@ export function BrandLibrary({ orgId }: { orgId: string }) {
       const path = `${orgId}/${crypto.randomUUID()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, { contentType: mime, upsert: false });
       if (uploadError) {
-        results.push({ tone: "error", text: `${file.name}: kunne ikke lastes opp (${uploadError.message}).` });
+        // Lagringen sier nei når biblioteket er fullt (300 filer per bedrift).
+        results.push({ tone: "error", text: /row-level security|policy/i.test(uploadError.message)
+          ? `${file.name}: biblioteket er fullt. Slett filer du ikke bruker, og prøv igjen.`
+          : `${file.name}: kunne ikke lastes opp. Prøv igjen.` });
         continue;
       }
       const { error: insertError } = await supabase.from("brand_assets").insert({

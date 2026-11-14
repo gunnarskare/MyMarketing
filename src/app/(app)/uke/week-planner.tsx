@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Notice } from "@/components/notice";
+import { requestJson } from "@/lib/api-client";
 import { DAYS, DAY_LABEL, PLATFORM_LABEL, PLATFORMS, osloParts, postForCopy, type Platform } from "@/lib/week";
 import { deletePost, rewritePost, savePost, setPostStatus, type PostRow } from "./actions";
 
@@ -31,6 +32,12 @@ export function WeekPlanner(props: {
 }) {
   const router = useRouter();
   const [posts, setPosts] = useState(props.initialPosts);
+  // Nye innlegg fra serveren (etter «Lag ukas utkast») erstatter lista uten at siden må lastes på nytt.
+  const [lastInitial, setLastInitial] = useState(props.initialPosts);
+  if (props.initialPosts !== lastInitial) {
+    setLastInitial(props.initialPosts);
+    setPosts(props.initialPosts);
+  }
   const ready = props.access && Boolean(props.analysisStatus);
 
   const update = (post: PostRow) => setPosts((current) => current.map((p) => (p.id === post.id ? post : p)));
@@ -112,9 +119,11 @@ function Generator({ ready, options, onDone, replacing = false }: { ready: boole
     setBusy(true);
     setMessage({ tone: "info", text: "Spott skriver innleggene. Det tar som regel under ett minutt." });
     try {
-      const response = await fetch("/api/weekly-plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ week, count, platforms }) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Kunne ikke lage utkastene.");
+      const data = await requestJson<{ week: string; count: number }>(
+        "/api/weekly-plan",
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ week, count, platforms }) },
+        "Kunne ikke lage utkastene. Prøv igjen.",
+      );
       setMessage({ tone: "success", text: `${data.count} utkast er klare.` });
       onDone(data.week);
     } catch (error) {
@@ -176,7 +185,11 @@ function PostCard({ post, imageUrl, canUseAi, onChange, onDelete }: {
   const [lastPost, setLastPost] = useState(post);
 
   // Nytt innhold fra serveren (for eksempel etter omskriving) erstatter feltene.
-  if (post !== lastPost) {
+  // Sammenlignes på innhold, så det du holder på å skrive ikke forsvinner om lista hentes på nytt.
+  const content = (p: PostRow) => `${p.base_text}\n${p.hashtags.join(" ")}\n${p.scheduled_at}`;
+  if (post !== lastPost && content(post) === content(lastPost)) {
+    setLastPost(post);
+  } else if (post !== lastPost) {
     setLastPost(post);
     setText(post.base_text);
     setHashtags(post.hashtags.join(" "));

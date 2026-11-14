@@ -12,7 +12,7 @@ import { fetchPublicHtml } from "@/lib/brand-crawler-fetch";
 import { normalizeWebsiteUrl } from "@/lib/brand-profile";
 import { safeFetch } from "@/lib/safe-fetch";
 
-export const maxDuration = 60;
+export const maxDuration = 90;
 
 const MAX_IMAGE = 5_000_000;
 const MAX_CSS = 1_000_000;
@@ -120,6 +120,7 @@ export async function POST(request: NextRequest) {
     try {
       return NextResponse.json(await analyze(start));
     } catch (error) {
+      console.error("Website analysis failed:", error instanceof Error ? error.message : "Unknown error");
       return NextResponse.json({ error: error instanceof Error ? error.message : "Nettsiden kunne ikke analyseres." }, { status: 400 });
     }
   }
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
     const imported: string[] = [];
     const duplicates: string[] = [];
     const failures: string[] = [];
-    for (const item of selected) {
+    const importOne = async (item: AssetCandidate) => {
       const label = item.name || "Bilde";
       try {
         const fetched = await safeFetch(item.url, { maxBytes: MAX_IMAGE, types: IMAGE_TYPES, accept: "image/*", timeoutMs: 8_000 });
@@ -151,7 +152,12 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         failures.push(`${label}: ${error instanceof Error ? error.message : "Importen feilet."}`);
       }
-    }
+    };
+    // Tre om gangen: raskt nok til å bli ferdig innen tidsgrensen, uten å belaste kundens nettside.
+    const queue = [...selected];
+    await Promise.all(Array.from({ length: 3 }, async () => {
+      for (let item = queue.shift(); item; item = queue.shift()) await importOne(item);
+    }));
     return NextResponse.json({ imported, duplicates, failures, count: imported.length });
   }
 

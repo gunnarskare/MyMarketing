@@ -6,6 +6,7 @@ import type { BrandAnalysis } from "@/lib/ai/brand-analysis-schema";
 import { ensureOpenAIConfigured } from "@/lib/ai/openai-client";
 import { crawlWebsite } from "@/lib/brand-crawler";
 import { extractPageText, fetchPublicHtml } from "@/lib/brand-crawler-fetch";
+import { PublicError } from "@/lib/public-error";
 
 export type ProfileInput = {
   website_url: string | null; tone: string | null; audience: string | null;
@@ -65,10 +66,11 @@ export async function regenerateBrandAnalysis(
   supabase: SupabaseClient, org: { id: string; name: string }, profile: ProfileInput | null,
 ): Promise<StoredAnalysis> {
   const websiteUrl = profile?.website_url?.trim() || null;
-  if (!websiteUrl) throw new Error("Legg inn nettsiden i profilen før analysen lages.");
+  if (!websiteUrl) throw new PublicError("Legg inn nettsiden i profilen før analysen lages.");
 
   const crawl = await crawlWebsite(websiteUrl, fetchPublicHtml, { maxPages: 12, timeBudgetMs: 30_000 });
-  if (!crawl.pages.length) throw new Error(crawl.failures[0]?.error || "Fant ingen sider på nettsiden.");
+  // Feilene fra hentingen er skrevet for brukeren (se safe-fetch.ts).
+  if (!crawl.pages.length) throw new PublicError(crawl.failures[0]?.error || "Fant ingen sider på nettsiden.");
   const pages = crawl.pages.map((page) => ({ url: page.url, text: extractPageText(page.html) }));
 
   ensureOpenAIConfigured();
@@ -97,7 +99,10 @@ export async function regenerateBrandAnalysis(
     updated_at: now,
   };
   const { error } = await supabase.from("brand_analyses").upsert(row, { onConflict: "org_id" });
-  if (error) throw new Error("Kunne ikke lagre merkevareanalysen.");
+  if (error) {
+    console.error("Brand analysis upsert failed:", error.message);
+    throw new PublicError("Kunne ikke lagre merkevareanalysen.");
+  }
   return {
     analysis, status, analyzedAt: now, approvedAt: null, websiteUrl,
     sourcePages: row.source_pages, model: row.model, stale: false,

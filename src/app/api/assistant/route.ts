@@ -5,6 +5,7 @@ import { loadBrandAnalysis } from "@/lib/ai/brand-analysis-cache";
 import { ensureOpenAIConfigured } from "@/lib/ai/openai-client";
 import { claimQuota } from "@/lib/ai/quota";
 import { requireOrg } from "@/lib/auth";
+import { isTimeout } from "@/lib/public-error";
 import { getBillingAccount, hasAccess, PAYWALL_MESSAGE } from "@/lib/billing";
 
 export const maxDuration = 60;
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
       organizationName: org.name, websiteUrl: profile?.website_url, tone: profile?.tone, audience: profile?.audience,
       products: profile?.products, avoid: profile?.avoid, language: profile?.language, brandAnalysis: brand.analysis,
     });
-    const result = await run(agent, body.message.trim());
+    const result = await run(agent, body.message.trim(), { signal: AbortSignal.timeout(50_000) });
     if (typeof result.finalOutput !== "string" || !result.finalOutput.trim()) {
       return NextResponse.json({ error: "Spott klarte ikke å lage et svar. Prøv igjen." }, { status: 502 });
     }
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
     console.error("Spott assistant request failed:", error instanceof Error ? error.message : "Unknown error");
     const message = error instanceof Error ? error.message : "";
     if (message.includes("OPENAI_API_KEY")) return NextResponse.json({ error: "AI-tjenesten er ikke satt opp på serveren." }, { status: 503 });
+    if (isTimeout(error)) return NextResponse.json({ error: "Svaret tok for lang tid. Prøv igjen." }, { status: 504 });
     return NextResponse.json({ error: "Spott fikk ikke kontakt med AI-tjenesten. Prøv igjen." }, { status: 502 });
   }
 }
