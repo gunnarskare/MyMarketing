@@ -5,6 +5,7 @@ import { Loading } from "@/components/loading";
 import { Notice } from "@/components/notice";
 import { loadBrandAnalysis } from "@/lib/ai/brand-analysis-cache";
 import { requireOrg } from "@/lib/auth";
+import { getBillingAccount, hasAccess } from "@/lib/billing";
 
 export const metadata: Metadata = { title: "Oversikt" };
 
@@ -40,6 +41,7 @@ async function DashboardContent() {
   ]);
   const profile = profileResult.data;
   const analysis = await loadBrandAnalysis(supabase, org, profile).catch(() => null);
+  const billing = await getBillingAccount(supabase, org.id);
   const assets = assetsResult.data ?? [];
   const posts = (postsResult.data ?? []) as Post[];
   const counts: Record<string, number> = { draft: draftCount.count ?? 0, scheduled: scheduledCount.count ?? 0, published: publishedCount.count ?? 0 };
@@ -74,6 +76,9 @@ async function DashboardContent() {
     typographyResult.data
       ? { title: "Typografien er valgt", detail: "Fontene som brukes i grafikk.", done: true, href: "/profil#typografi" }
       : { title: "Velg typografi", detail: "Hvilke fonter grafikken skal bruke.", done: false, href: "/profil#typografi", action: "Velg" },
+    hasAccess(billing)
+      ? { title: "Abonnementet er aktivt", detail: billing?.cancel_at_period_end ? "Sagt opp, men aktivt ut perioden." : "Fornyes automatisk hver måned.", done: true, href: "/abonnement" }
+      : { title: "Start abonnementet", detail: "2 990 kr per måned eks. mva. Kreves for AI-analysen.", done: false, href: "/abonnement", action: "Start" },
   ];
   const done = steps.filter((s) => s.done).length;
 

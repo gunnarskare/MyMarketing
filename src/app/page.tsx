@@ -183,6 +183,26 @@ export default function Home() {
           </div>
         </section>
 
+        <section id="pris" className="scroll-mt-4">
+          <div className="mx-auto grid w-full max-w-6xl gap-10 px-6 py-20 lg:grid-cols-2 lg:items-center lg:gap-16 lg:py-28">
+            <div>
+              <h2 className="text-4xl leading-[1.05] font-extrabold tracking-[-0.025em] text-balance sm:text-5xl">Én pris, alt inkludert</h2>
+              <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-soft">
+                Ingen bindingstid. Si opp når du vil, og behold tilgangen ut måneden du har betalt for.
+              </p>
+            </div>
+            <div className="border-t-2 border-ink pt-6">
+              <p className="flex flex-wrap items-baseline gap-x-3">
+                <span className="text-6xl font-black tracking-[-0.03em] tabular-nums">2&nbsp;990&nbsp;kr</span>
+                <span className="text-lg text-ink-soft">per måned, eks. mva.</span>
+              </p>
+              <p className="mt-4 max-w-md leading-relaxed text-ink-soft">
+                Merkevareprofil, AI-analyse av nettsiden og bibliotek for logoer og bilder. Ukeplanen med ferdige innlegg kommer snart, og er med i prisen.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section className="on-dark bg-spot text-paper">
           <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-8 px-6 py-20 lg:flex-row lg:items-end lg:justify-between lg:py-24">
             <div>

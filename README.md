@@ -76,6 +76,16 @@ i databasen. Funksjonen teller kall de siste 24 timene og sier nei når grensen 
 
 Grensene endres i migrasjonen. Sett i tillegg et månedlig budsjett i OpenAI-kontoen.
 
+## Betaling (Stripe)
+
+- Produktet «Spott» har én månedspris med oppslagsnøkkelen `spott_monthly_nok` (2 990 kr eks. mva.).
+  Koden finner prisen med nøkkelen, så den samme koden virker i test og live.
+- `/abonnement` starter Stripe Checkout og åpner kundeportalen (kort, fakturaer, oppsigelse ved periodens slutt).
+- `/api/stripe/webhook` speiler abonnementet til `billing_accounts`. Den er åpen i proxyen og sjekker Stripe-signaturen.
+- AI-analysen og assistenten krever aktivt abonnement (`active`, `trialing` eller `past_due`), eller
+  `complimentary = true` i `billing_accounts` for gratis tilgang.
+- Miljøvariabler: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SECRET_KEY` (eller `SUPABASE_SERVICE_ROLE_KEY`).
+
 ## Tester
 
 ```bash

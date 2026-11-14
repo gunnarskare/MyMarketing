@@ -73,6 +73,10 @@ export default function PrivacyPage() {
                 Forslagene er bare forslag til du har godkjent dem.
               </li>
               <li>
+                <strong>Ta betalt for abonnementet:</strong> bedriftsnavn, e-post, adresse og
+                organisasjonsnummer på fakturaen. Grunnlaget er avtalen med deg og regnskapsloven.
+              </li>
+              <li>
                 <strong>Sende nødvendig e-post:</strong> for eksempel lenken som bekrefter kontoen
                 din. Grunnlaget er avtalen med deg.
               </li>
@@ -107,12 +111,17 @@ export default function PrivacyPage() {
                 vilkår brukes opplysninger som sendes via API-et, som standard ikke til å trene modellene.
               </li>
               <li>
+                <strong>Stripe</strong> håndterer betalingen for abonnementet. Kortopplysninger går
+                rett til Stripe, og vi ser dem aldri. Vi lagrer bare kundenummeret og statusen på
+                abonnementet.
+              </li>
+              <li>
                 <strong>Google Fonts</strong>: når du forhåndsviser fonter under Typografi, henter
                 nettleseren fontfilene fra Google. Da ser Google IP-adressen din.
               </li>
             </ul>
             <p>
-              Alle fire er amerikanske selskaper. Når personopplysninger overføres ut av EØS, skjer det
+              Alle fem er amerikanske selskaper. Når personopplysninger overføres ut av EØS, skjer det
               med et overføringsgrunnlag som personvernforordningen godtar, som EUs standard
               personvernbestemmelser.
             </p>

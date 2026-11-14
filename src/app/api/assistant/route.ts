@@ -5,6 +5,7 @@ import { loadBrandAnalysis } from "@/lib/ai/brand-analysis-cache";
 import { ensureOpenAIConfigured } from "@/lib/ai/openai-client";
 import { claimQuota } from "@/lib/ai/quota";
 import { requireOrg } from "@/lib/auth";
+import { getBillingAccount, hasAccess, PAYWALL_MESSAGE } from "@/lib/billing";
 
 export const maxDuration = 60;
 const MAX_MESSAGE_LENGTH = 4000;
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
   if (body.message.length > MAX_MESSAGE_LENGTH) return NextResponse.json({ error: "Meldingen er for lang." }, { status: 413 });
 
   const { supabase, org } = context;
+  if (!hasAccess(await getBillingAccount(supabase, org.id))) return NextResponse.json({ error: PAYWALL_MESSAGE }, { status: 402 });
   const quota = await claimQuota(supabase, org.id, "assistant");
   if (!quota.allowed) return NextResponse.json({ error: quota.message }, { status: 429 });
 

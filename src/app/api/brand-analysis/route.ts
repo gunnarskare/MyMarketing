@@ -4,6 +4,7 @@ import { describePath } from "@/lib/ai/brand-analysis-labels";
 import { brandAnalysisSchema } from "@/lib/ai/brand-analysis-schema";
 import { claimQuota } from "@/lib/ai/quota";
 import { requireOrg } from "@/lib/auth";
+import { getBillingAccount, hasAccess, PAYWALL_MESSAGE } from "@/lib/billing";
 
 async function context() {
   try {
@@ -37,6 +38,7 @@ export async function POST() {
   try {
     const profile = await readProfile(ctx);
     if (!profile?.website_url) return NextResponse.json({ error: "Legg inn nettsiden i profilen før analysen lages." }, { status: 400 });
+    if (!hasAccess(await getBillingAccount(ctx.supabase, ctx.org.id))) return NextResponse.json({ error: PAYWALL_MESSAGE }, { status: 402 });
     const quota = await claimQuota(ctx.supabase, ctx.org.id, "brand_analysis");
     if (!quota.allowed) return NextResponse.json({ error: quota.message }, { status: 429 });
     const result = await regenerateBrandAnalysis(ctx.supabase, ctx.org, profile);

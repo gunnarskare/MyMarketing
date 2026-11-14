@@ -302,3 +302,22 @@ test("AI-kvote: stopper etter grensen, og bare medlemmer kan bruke bedriftens kv
     await assert.rejects(db.query(`select public.claim_ai_quota($1, 'assistant')`, [orgA]), /permission denied/);
   });
 });
+
+test("abonnement: medlemmer kan lese sitt eget, men ingen kan endre det fra nettleseren", async () => {
+  await as("service_role", null, async () => {
+    await db.query(`insert into public.billing_accounts (org_id, status, stripe_customer_id) values ($1, 'active', 'cus_a')`, [orgA]);
+  });
+  await as("authenticated", USER_A, async () => {
+    const own = await db.query(`select status from public.billing_accounts`);
+    assert.deepEqual(own.rows.map((r) => r.status), ["active"]);
+    await assert.rejects(db.query(`update public.billing_accounts set complimentary = true`), /permission denied/);
+    await assert.rejects(db.query(`insert into public.billing_accounts (org_id, status) values ($1, 'active')`, [orgA]), /permission denied/);
+  });
+  await as("authenticated", USER_B, async () => {
+    assert.equal((await db.query(`select 1 from public.billing_accounts`)).rows.length, 0);
+    await assert.rejects(db.query(`insert into public.billing_accounts (org_id, status) values ($1, 'active')`, [orgB]), /permission denied/);
+  });
+  await as("anon", null, async () => {
+    await assert.rejects(db.query(`select * from public.billing_accounts`), /permission denied/);
+  });
+});
