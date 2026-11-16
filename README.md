@@ -29,7 +29,8 @@ Uten Supabase-verdiene starter appen likevel, men innlogging er slått av.
 | `src/lib/auth.ts` | `requireUser` og `requireOrg`, brukt øverst i alt som krever innlogging |
 | `src/app/page.tsx` | Forsiden |
 | `src/app/personvern` | Personvernerklæringen |
-| `src/lib/company.ts` | Selskapsopplysninger som vises i bunnteksten og personvernerklæringen |
+| `src/app/vilkar` | Vilkårene for å bruke Spott. Godtas når kontoen opprettes og abonnementet startes |
+| `src/lib/company.ts` | Selskapsopplysninger som vises i bunnteksten, personvernerklæringen og vilkårene |
 | `src/app/login` | Innlogging og registrering med e-post og passord |
 | `src/app/auth/confirm` | Mottar lenken fra bekreftelses-e-posten |
 | `src/app/(app)/onboarding` | Oppretter bedriften ved første innlogging |

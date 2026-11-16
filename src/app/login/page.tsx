@@ -72,7 +72,11 @@ export default function LoginPage({ searchParams }: { searchParams: SearchParams
       ) : null}
 
       <p className="text-sm text-ink-soft">
-        Les hvordan vi behandler opplysningene dine i{" "}
+        Når du oppretter en konto, godtar du{" "}
+        <Link href="/vilkar" className="font-semibold text-ink underline underline-offset-2">
+          vilkårene
+        </Link>{" "}
+        på vegne av bedriften. Les hvordan vi behandler opplysningene dine i{" "}
         <Link href="/personvern" className="font-semibold text-ink underline underline-offset-2">
           personvernerklæringen
         </Link>

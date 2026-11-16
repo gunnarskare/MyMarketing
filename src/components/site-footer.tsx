@@ -21,6 +21,7 @@ export function SiteFooter() {
           ) : null}
         </div>
         <nav aria-label="Bunnmeny" className="flex gap-6 text-sm font-semibold">
+          <Link href="/vilkar">Vilkår</Link>
           <Link href="/personvern">Personvern</Link>
           <Link href="/login">Logg inn</Link>
         </nav>

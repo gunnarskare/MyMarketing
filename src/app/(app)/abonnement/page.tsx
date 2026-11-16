@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { SubmitButton } from "@/components/form";
 import { Loading } from "@/components/loading";
@@ -87,8 +88,12 @@ async function SubscriptionContent({ searchParams }: { searchParams: SearchParam
         </ul>
         <Messages betaling={typeof betaling === "string" ? betaling : undefined} active={active} />
         {active ? <ActiveStatus account={account!} /> : (
-          <form action={startCheckout}>
+          <form action={startCheckout} className="flex flex-col gap-3">
             <SubmitButton>Start abonnement</SubmitButton>
+            <p className="text-sm text-ink-soft">
+              Når du starter abonnementet, godtar du{" "}
+              <Link href="/vilkar" className="font-semibold text-ink underline underline-offset-2">vilkårene</Link>.
+            </p>
           </form>
         )}
       </section>

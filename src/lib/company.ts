@@ -1,5 +1,5 @@
 /**
- * Hvem som står bak tjenesten. Brukes i bunnteksten og personvernerklæringen.
+ * Hvem som står bak tjenesten. Brukes i bunnteksten, personvernerklæringen og vilkårene.
  * E-post og adresse vises bare når de er fylt inn.
  */
 export const company: {
