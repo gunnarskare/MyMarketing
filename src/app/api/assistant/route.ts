@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSpottAssistant } from "@/lib/ai/agents/spott-assistant";
+import { createSpydAssistant } from "@/lib/ai/agents/spyd-assistant";
 import { loadBrandAnalysis } from "@/lib/ai/brand-analysis-cache";
 import { ensureOpenAIConfigured } from "@/lib/ai/openai-client";
 import { claimQuota } from "@/lib/ai/quota";
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Ugyldig forespørsel." }, { status: 400 });
   }
-  if (typeof body.message !== "string" || !body.message.trim()) return NextResponse.json({ error: "Skriv en melding til Spott." }, { status: 400 });
+  if (typeof body.message !== "string" || !body.message.trim()) return NextResponse.json({ error: "Skriv en melding til Spyd." }, { status: 400 });
   if (body.message.length > MAX_MESSAGE_LENGTH) return NextResponse.json({ error: "Meldingen er for lang." }, { status: 413 });
 
   const { supabase, org } = context;
@@ -39,13 +39,13 @@ export async function POST(request: NextRequest) {
     // og ville overskrevet endringer brukeren har gjort.
     const brand = await loadBrandAnalysis(supabase, org, profile);
     ensureOpenAIConfigured();
-    const agent = createSpottAssistant({
+    const agent = createSpydAssistant({
       organizationName: org.name, websiteUrl: profile?.website_url, tone: profile?.tone, audience: profile?.audience,
       products: profile?.products, avoid: profile?.avoid, language: profile?.language, brandAnalysis: brand.analysis,
     });
     const result = await runAndRecordUsage(quota.runId, agent, body.message.trim(), { signal: AbortSignal.timeout(50_000) });
     if (typeof result.finalOutput !== "string" || !result.finalOutput.trim()) {
-      return NextResponse.json({ error: "Spott klarte ikke å lage et svar. Prøv igjen." }, { status: 502 });
+      return NextResponse.json({ error: "Spyd klarte ikke å lage et svar. Prøv igjen." }, { status: 502 });
     }
     return NextResponse.json({
       answer: result.finalOutput,
@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
       remaining: quota.remaining,
     });
   } catch (error) {
-    console.error("Spott assistant request failed:", error instanceof Error ? error.message : "Unknown error");
+    console.error("Spyd assistant request failed:", error instanceof Error ? error.message : "Unknown error");
     const message = error instanceof Error ? error.message : "";
     if (message.includes("OPENAI_API_KEY")) return NextResponse.json({ error: "AI-tjenesten er ikke satt opp på serveren." }, { status: 503 });
     if (isTimeout(error)) return NextResponse.json({ error: "Svaret tok for lang tid. Prøv igjen." }, { status: 504 });
-    return NextResponse.json({ error: "Spott fikk ikke kontakt med AI-tjenesten. Prøv igjen." }, { status: 502 });
+    return NextResponse.json({ error: "Spyd fikk ikke kontakt med AI-tjenesten. Prøv igjen." }, { status: 502 });
   }
 }

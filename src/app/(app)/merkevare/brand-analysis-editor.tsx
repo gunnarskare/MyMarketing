@@ -64,7 +64,7 @@ function updatePath(value: unknown, path: Path, next: unknown): unknown {
   return { ...record, [String(head)]: updatePath(record[String(head)], tail, next) };
 }
 
-const inputClass = "w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm leading-relaxed text-ink focus:border-ink focus:outline-none";
+const inputClass = "w-full rounded-lg border border-edge bg-white/60 px-3 py-2.5 text-sm leading-relaxed text-ink focus:border-ink focus:outline-none";
 // Tekstfelt vokser med innholdet der nettleseren støtter det, så ingenting skjules.
 const textareaClass = inputClass + " min-h-11 resize-y [field-sizing:content]";
 
@@ -140,14 +140,14 @@ function Field({ value, path, onChange }: { value: unknown; path: Path; onChange
     const titleKey = ITEM_TITLE[key];
     return (
       <div className="flex flex-col gap-4">
-        {value.length === 0 ? <p className="rounded-xl bg-mist px-4 py-3 text-sm text-ink-soft">Ingen ennå.</p> : null}
+        {value.length === 0 ? <p className="rounded-xl bg-sand px-4 py-3 text-sm text-ink-soft">Ingen ennå.</p> : null}
         {value.map((item, index) => {
           const title = titleKey ? String((item as Record<string, unknown>)[titleKey] ?? "").trim() : "";
           return (
-            <section key={index} className="rounded-2xl border border-line p-4" aria-label={title || `Nummer ${index + 1}`}>
+            <section key={index} className="rounded-xl border border-line p-4" aria-label={title || `Nummer ${index + 1}`}>
               <div className="mb-3 flex items-start justify-between gap-3">
                 <h4 className="min-w-0 text-sm font-semibold">{title || `Nummer ${index + 1}`}</h4>
-                <button type="button" onClick={() => onChange(path, value.filter((_, i) => i !== index))} className="shrink-0 text-xs font-semibold text-spot underline underline-offset-4">
+                <button type="button" onClick={() => onChange(path, value.filter((_, i) => i !== index))} className="shrink-0 text-xs font-semibold text-terra-deep underline underline-offset-4">
                   Fjern
                 </button>
               </div>
@@ -162,7 +162,7 @@ function Field({ value, path, onChange }: { value: unknown; path: Path; onChange
           );
         })}
         <div>
-          <button type="button" onClick={() => onChange(path, [...value, structuredClone(template)])} className="rounded-full border border-ink px-4 py-2 text-sm font-semibold">
+          <button type="button" onClick={() => onChange(path, [...value, structuredClone(template)])} className="rounded-lg border border-ink hover:bg-sand px-4 py-2 text-sm font-semibold">
             Legg til
           </button>
         </div>
@@ -202,8 +202,8 @@ function QualityView({ quality }: { quality: BrandAnalysis["quality"] }) {
         Dette er AI-ens egen vurdering av hvor sikker analysen er. Den endres når analysen lages på nytt.
       </p>
       <dl className="grid grid-cols-2 gap-4">
-        <div className="rounded-xl bg-mist p-4"><dt className="text-xs font-semibold text-ink-soft">Sikkerhet</dt><dd className="mt-1 text-lg font-bold">{confidence}</dd></div>
-        <div className="rounded-xl bg-mist p-4"><dt className="text-xs font-semibold text-ink-soft">Fullstendighet</dt><dd className="mt-1 text-lg font-bold tabular-nums">{quality.completeness} %</dd></div>
+        <div className="rounded-xl bg-sand p-4"><dt className="text-xs font-semibold text-ink-soft">Sikkerhet</dt><dd className="mt-1 text-lg font-semibold">{confidence}</dd></div>
+        <div className="rounded-xl bg-sand p-4"><dt className="text-xs font-semibold text-ink-soft">Fullstendighet</dt><dd className="mt-1 text-lg font-semibold tabular-nums">{quality.completeness} %</dd></div>
       </dl>
       <List title="Antakelser å sjekke" items={quality.assumptions} />
       <List title="Det som mangler" items={quality.missingInformation} />
@@ -251,7 +251,7 @@ export function BrandAnalysisEditor(props: Props) {
       setApprovedAt(result.approvedAt);
       if (result.stale === false) setStale(false);
       setDirty(false);
-      setMessage({ tone: "success", text: approve ? "Analysen er godkjent. Spott bruker den når innhold lages." : "Endringene er lagret. Godkjenn når du er fornøyd." });
+      setMessage({ tone: "success", text: approve ? "Analysen er godkjent. Spyd bruker den når innhold lages." : "Endringene er lagret. Godkjenn når du er fornøyd." });
     } catch (error) {
       setMessage({ tone: "error", text: error instanceof Error ? error.message : "Lagringen feilet." });
     } finally {
@@ -262,11 +262,11 @@ export function BrandAnalysisEditor(props: Props) {
   async function generate() {
     const replacing = Boolean(analysis);
     const warning = replacing
-      ? "Spott leser nettsiden på nytt og lager en ny analyse. Den erstatter analysen du har nå" + (status === "approved" || dirty ? ", også endringene og godkjenningen din" : "") + ". Fortsette?"
+      ? "Spyd leser nettsiden på nytt og lager en ny analyse. Den erstatter analysen du har nå" + (status === "approved" || dirty ? ", også endringene og godkjenningen din" : "") + ". Fortsette?"
       : null;
     if (warning && !window.confirm(warning)) return;
     setGenerating(true);
-    setMessage({ tone: "info", text: "Spott leser nettsiden og skriver analysen. Det tar som regel ett til to minutter." });
+    setMessage({ tone: "info", text: "Spyd leser nettsiden og skriver analysen. Det tar som regel ett til to minutter." });
     try {
       const result = await requestJson<{ analysis: BrandAnalysis; status: Status; analyzedAt: string | null; sourcePages?: { url: string; depth: number }[]; remaining?: number }>(
         "/api/brand-analysis", { method: "POST" }, "Kunne ikke lage analysen. Prøv igjen.",
@@ -290,11 +290,11 @@ export function BrandAnalysisEditor(props: Props) {
 
   if (!analysis) {
     return (
-      <section className="rounded-3xl border border-line p-6 sm:p-10">
+      <section className="rounded-xl border border-line p-6 sm:p-10">
         <div className="max-w-xl">
-          <h2 className="text-2xl font-bold tracking-tight">Ingen analyse ennå</h2>
+          <h2 className="font-serif text-[1.75rem] leading-tight tracking-[-0.01em]">Ingen analyse ennå</h2>
           <p className="mt-3 leading-relaxed text-ink-soft">
-            Spott leser nettsiden og profilen, og skriver en analyse av merkevaren: målgrupper, tone, budskap og muligheter.
+            Spyd leser nettsiden og profilen, og skriver en analyse av merkevaren: målgrupper, tone, budskap og muligheter.
             Du kan rette alt etterpå.
           </p>
           {props.profileWebsite ? (
@@ -303,10 +303,10 @@ export function BrandAnalysisEditor(props: Props) {
             <Notice tone="info">Legg inn nettsiden i <Link href="/profil" className="font-semibold underline">profilen</Link> først.</Notice>
           )}
           <div className="mt-6 flex flex-wrap gap-3">
-            <button type="button" onClick={() => void generate()} disabled={generating || !props.profileWebsite} className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper disabled:opacity-50">
+            <button type="button" onClick={() => void generate()} disabled={generating || !props.profileWebsite} className="rounded-lg bg-terra-deep px-6 py-3 text-sm font-semibold text-paper hover:bg-terra-deeper disabled:opacity-50">
               {generating ? "Lager analysen …" : "Lag analysen"}
             </button>
-            <Link href="/profil" className="rounded-full border border-ink px-6 py-3 text-sm font-semibold">Gå til profilen</Link>
+            <Link href="/profil" className="rounded-lg border border-ink hover:bg-sand px-6 py-3 text-sm font-semibold">Gå til profilen</Link>
           </div>
           {message ? <div className="mt-5"><Notice tone={message.tone}>{message.text}</Notice></div> : null}
         </div>
@@ -324,22 +324,22 @@ export function BrandAnalysisEditor(props: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      <section className="on-dark rounded-3xl bg-ink p-6 text-paper sm:p-8">
+      <section className="on-dark rounded-xl bg-ink p-6 text-paper sm:p-8">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
-          <span className={"rounded-full px-3 py-1 font-semibold " + (approved ? "bg-paper text-ink" : "bg-paper/15")}>{STATUS_LABEL[status]}</span>
+          <span className={"rounded-md px-2.5 py-1 font-semibold " + (approved ? "bg-paper text-ink" : "bg-paper/15")}>{STATUS_LABEL[status]}</span>
           {analyzedAt ? <span className="text-ink-muted">Laget {formatDate(analyzedAt)}</span> : null}
           {approved && approvedAt ? <span className="text-ink-muted">Godkjent {formatDate(approvedAt, true)}</span> : null}
         </div>
-        <h2 className="mt-4 max-w-2xl text-2xl font-bold tracking-tight text-balance">{analysis.brandOverview.oneLiner || props.organizationName}</h2>
+        <h2 className="mt-4 max-w-2xl font-serif text-[1.75rem] leading-tight tracking-[-0.01em] text-balance">{analysis.brandOverview.oneLiner || props.organizationName}</h2>
         {analysis.brandOverview.summary ? <p className="mt-3 max-w-2xl leading-relaxed text-ink-muted">{analysis.brandOverview.summary}</p> : null}
         <div className="mt-6 flex flex-wrap gap-2">
-          <button type="button" onClick={() => void save(true)} disabled={saving || generating || (approved && !dirty)} className="rounded-full bg-paper px-5 py-2.5 text-sm font-semibold text-ink disabled:opacity-50">
+          <button type="button" onClick={() => void save(true)} disabled={saving || generating || (approved && !dirty)} className="rounded-lg bg-paper px-5 py-2.5 text-sm font-semibold text-ink hover:bg-sand disabled:opacity-50">
             {saving ? "Lagrer …" : approved && !dirty ? "Godkjent" : dirty ? "Lagre og godkjenn" : "Godkjenn analysen"}
           </button>
-          <button type="button" onClick={() => void save(false)} disabled={saving || generating || !dirty} className="rounded-full border border-paper/40 px-5 py-2.5 text-sm font-semibold disabled:opacity-40">
+          <button type="button" onClick={() => void save(false)} disabled={saving || generating || !dirty} className="rounded-lg border border-paper/40 px-5 py-2.5 text-sm font-semibold hover:bg-paper/10 disabled:opacity-40">
             Lagre utkast
           </button>
-          <button type="button" onClick={() => void generate()} disabled={saving || generating} className="rounded-full border border-paper/40 px-5 py-2.5 text-sm font-semibold disabled:opacity-40">
+          <button type="button" onClick={() => void generate()} disabled={saving || generating} className="rounded-lg border border-paper/40 px-5 py-2.5 text-sm font-semibold hover:bg-paper/10 disabled:opacity-40">
             {generating ? "Lager ny analyse …" : "Lag ny analyse"}
           </button>
         </div>
@@ -361,30 +361,30 @@ export function BrandAnalysisEditor(props: Props) {
               type="button"
               aria-current={active === key ? "true" : undefined}
               onClick={() => setActive(key)}
-              className={"shrink-0 rounded-full px-4 py-2 text-left text-sm font-semibold lg:rounded-xl lg:py-2.5 " + (active === key ? "bg-ink text-paper" : "border border-line text-ink-soft hover:text-ink")}
+              className={"shrink-0 rounded-lg px-4 py-2 text-left text-sm font-semibold lg:py-2.5 " + (active === key ? "bg-terra text-white" : "border border-line text-ink-soft hover:bg-sand hover:text-ink")}
             >
               {name}
             </button>
           ))}
         </nav>
-        <section className="min-w-0 rounded-3xl border border-line p-5 sm:p-7" aria-labelledby="kapittel">
-          <h3 id="kapittel" className="mb-6 text-2xl font-bold tracking-tight">{SECTIONS[activeIndex][1]}</h3>
+        <section className="min-w-0 rounded-xl border border-line p-5 sm:p-7" aria-labelledby="kapittel">
+          <h3 id="kapittel" className="mb-6 font-serif text-[1.75rem] leading-tight tracking-[-0.01em]">{SECTIONS[activeIndex][1]}</h3>
           {active === "quality"
             ? <QualityView quality={analysis.quality} />
             : <Field value={analysis[active]} path={[active]} onChange={onChange} />}
           <div className="mt-8 flex justify-between gap-3 border-t border-line pt-5">
-            <button type="button" onClick={() => setActive(SECTIONS[Math.max(0, activeIndex - 1)][0])} disabled={activeIndex === 0} className="rounded-full border border-line px-4 py-2.5 text-sm font-semibold disabled:opacity-30">
+            <button type="button" onClick={() => setActive(SECTIONS[Math.max(0, activeIndex - 1)][0])} disabled={activeIndex === 0} className="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold disabled:opacity-30">
               Forrige
             </button>
-            <button type="button" onClick={() => setActive(SECTIONS[Math.min(SECTIONS.length - 1, activeIndex + 1)][0])} disabled={activeIndex === SECTIONS.length - 1} className="rounded-full border border-line px-4 py-2.5 text-sm font-semibold disabled:opacity-30">
+            <button type="button" onClick={() => setActive(SECTIONS[Math.min(SECTIONS.length - 1, activeIndex + 1)][0])} disabled={activeIndex === SECTIONS.length - 1} className="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold disabled:opacity-30">
               Neste
             </button>
           </div>
         </section>
       </div>
 
-      <section className="rounded-3xl border border-line p-5 sm:p-7">
-        <h3 className="font-bold">Kilder</h3>
+      <section className="rounded-xl border border-line p-5 sm:p-7">
+        <h3 className="font-semibold">Kilder</h3>
         <p className="mt-1 text-sm text-ink-soft">
           Laget fra {sourcePages.length} {sourcePages.length === 1 ? "side" : "sider"} på {webUrl(props.websiteUrl)?.hostname ?? "nettsiden"}
           {props.model ? ` med ${props.model}` : ""}.
@@ -392,7 +392,7 @@ export function BrandAnalysisEditor(props: Props) {
         <ul className="mt-3 flex flex-wrap gap-2">
           {sourcePages.slice(0, 12).map((page) => webUrl(page?.url)).filter((url) => url !== null).map((url) => (
             <li key={url.href} className="min-w-0 max-w-full">
-              <a href={url.href} target="_blank" rel="noreferrer" className="block truncate rounded-full bg-mist px-3 py-1.5 text-xs font-medium underline underline-offset-2">
+              <a href={url.href} target="_blank" rel="noreferrer" className="block truncate rounded-md bg-sand px-3 py-1.5 text-xs font-medium underline underline-offset-2">
                 {url.pathname}
               </a>
             </li>

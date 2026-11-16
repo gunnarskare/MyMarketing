@@ -9,7 +9,7 @@ export const company: {
   email: string | null;
   address: string | null;
 } = {
-  product: "Spott",
+  product: "Spyd",
   legalName: "S&S Marketing AS",
   // Harde mellomrom, så nummeret ikke deles over to linjer.
   orgNumber: "930\u00a0641\u00a0340",

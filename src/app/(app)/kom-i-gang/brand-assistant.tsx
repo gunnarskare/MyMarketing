@@ -11,11 +11,11 @@ type FieldName = "website_url" | "tone" | "audience" | "products" | "avoid";
 type Step = { id: string; title: string; prompt: string; field?: FieldName; placeholder?: string; options?: string[] };
 
 const STEPS: Step[] = [
-  { id: "website", title: "Hvor finner vi bedriften?", prompt: "Har bedriften en nettside? Spott leser den for å forstå hva dere driver med.", field: "website_url", placeholder: "dinbedrift.no" },
+  { id: "website", title: "Hvor finner vi bedriften?", prompt: "Har bedriften en nettside? Spyd leser den for å forstå hva dere driver med.", field: "website_url", placeholder: "dinbedrift.no" },
   { id: "offer", title: "Hva tilbyr dere?", prompt: "Fortell kort hva dere selger eller leverer, og hva kundene bør huske dere for.", field: "products", placeholder: "Vi baker brød og leverer lunsj til bedrifter i sentrum …" },
   { id: "audience", title: "Hvem vil dere nå?", prompt: "Hvem er de viktigste kundene? Privatpersoner, bedrifter eller en bestemt bransje.", field: "audience", placeholder: "Folk som bor og jobber i sentrum …" },
   { id: "voice", title: "Hvordan skal dere høres ut?", prompt: "Velg et uttrykk, eller skriv med egne ord. Det kan justeres senere.", field: "tone", options: ["Vennlig og folkelig", "Profesjonell og faglig", "Moderne og energisk", "Eksklusiv og elegant", "Leken og kreativ"] },
-  { id: "avoid", title: "Er det noe Spott skal styre unna?", prompt: "Ord, temaer eller påstander dere ikke vil bruke. Valgfritt.", field: "avoid", placeholder: "Vi lover aldri laveste pris …" },
+  { id: "avoid", title: "Er det noe Spyd skal styre unna?", prompt: "Ord, temaer eller påstander dere ikke vil bruke. Valgfritt.", field: "avoid", placeholder: "Vi lover aldri laveste pris …" },
 ];
 
 const SERVICES = [
@@ -81,38 +81,38 @@ export function BrandAssistant({ orgName, profile, assets, hasTypography }: { or
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-      <section className="rounded-3xl border border-line" aria-labelledby="veiviser-tittel">
+      <section className="rounded-xl border border-line" aria-labelledby="veiviser-tittel">
         <div className="border-b border-line p-5 sm:p-7">
           <div className="flex items-center justify-between text-sm text-ink-soft">
             <span>{done ? "Ferdig" : `Spørsmål ${stepIndex + 1} av ${STEPS.length}`}</span>
             <span>{orgName}</span>
           </div>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-mist" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label="Fremdrift">
-            <div className="h-full rounded-full bg-spot transition-[width]" style={{ width: progress + "%" }} />
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-sand" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label="Fremdrift">
+            <div className="h-full rounded-full bg-terra transition-[width]" style={{ width: progress + "%" }} />
           </div>
         </div>
 
         <div className="p-5 sm:p-7">
           {!done ? (
             <>
-              <h2 id="veiviser-tittel" className="text-2xl font-bold tracking-tight">{step.title}</h2>
+              <h2 id="veiviser-tittel" className="font-serif text-[1.75rem] leading-tight tracking-[-0.01em]">{step.title}</h2>
               <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">{step.prompt}</p>
               <label htmlFor="svar" className="sr-only">{step.title}</label>
               {step.options ? (
                 <div className="mt-5 flex flex-col gap-3">
                   <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Forslag">
                     {step.options.map((option) => (
-                      <button key={option} type="button" aria-pressed={value === option} onClick={() => setDrafts((c) => ({ ...c, [step.id]: option }))} className={"rounded-2xl border px-4 py-3 text-left text-sm font-semibold " + (value === option ? "border-ink bg-mist" : "border-line hover:border-ink")}>
+                      <button key={option} type="button" aria-pressed={value === option} onClick={() => setDrafts((c) => ({ ...c, [step.id]: option }))} className={"rounded-xl border px-4 py-3 text-left text-sm font-semibold " + (value === option ? "border-ink bg-sand" : "border-line hover:border-ink")}>
                         {option}
                       </button>
                     ))}
                   </div>
-                  <textarea id="svar" value={value} onChange={(e) => setDrafts((c) => ({ ...c, [step.id]: e.target.value }))} rows={2} placeholder="Eller beskriv med egne ord …" className="w-full rounded-2xl border border-line bg-paper px-4 py-3 text-base" />
+                  <textarea id="svar" value={value} onChange={(e) => setDrafts((c) => ({ ...c, [step.id]: e.target.value }))} rows={2} placeholder="Eller beskriv med egne ord …" className="w-full rounded-lg border border-edge bg-white/60 px-4 py-3 text-base" />
                 </div>
               ) : step.field === "website_url" ? (
-                <input id="svar" type="text" inputMode="url" autoComplete="url" value={value} onChange={(e) => setDrafts((c) => ({ ...c, [step.id]: e.target.value }))} placeholder={step.placeholder} className="mt-5 w-full rounded-2xl border border-line bg-paper px-4 py-3 text-base" />
+                <input id="svar" type="text" inputMode="url" autoComplete="url" value={value} onChange={(e) => setDrafts((c) => ({ ...c, [step.id]: e.target.value }))} placeholder={step.placeholder} className="mt-5 w-full rounded-lg border border-edge bg-white/60 px-4 py-3 text-base" />
               ) : (
-                <textarea id="svar" value={value} onChange={(e) => setDrafts((c) => ({ ...c, [step.id]: e.target.value }))} rows={4} placeholder={step.placeholder} className="mt-5 w-full rounded-2xl border border-line bg-paper px-4 py-3 text-base" />
+                <textarea id="svar" value={value} onChange={(e) => setDrafts((c) => ({ ...c, [step.id]: e.target.value }))} rows={4} placeholder={step.placeholder} className="mt-5 w-full rounded-lg border border-edge bg-white/60 px-4 py-3 text-base" />
               )}
               {message ? <div className="mt-4"><Notice tone={message.tone}>{message.text}</Notice></div> : null}
               <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
@@ -120,8 +120,8 @@ export function BrandAssistant({ orgName, profile, assets, hasTypography }: { or
                   Tilbake
                 </button>
                 <div className="flex gap-2">
-                  <button type="button" disabled={pending} onClick={next} className="rounded-full border border-line px-5 py-2.5 text-sm font-semibold">Hopp over</button>
-                  <button type="button" disabled={pending} onClick={saveAndContinue} className="rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-paper disabled:opacity-50">
+                  <button type="button" disabled={pending} onClick={next} className="rounded-lg border border-line px-5 py-2.5 text-sm font-semibold">Hopp over</button>
+                  <button type="button" disabled={pending} onClick={saveAndContinue} className="rounded-lg bg-terra-deep px-6 py-2.5 text-sm font-semibold text-paper hover:bg-terra-deeper disabled:opacity-50">
                     {pending ? "Lagrer …" : "Lagre og fortsett"}
                   </button>
                 </div>
@@ -129,22 +129,22 @@ export function BrandAssistant({ orgName, profile, assets, hasTypography }: { or
             </>
           ) : (
             <>
-              <h2 id="veiviser-tittel" className="text-2xl font-bold tracking-tight">Profilen er på plass</h2>
+              <h2 id="veiviser-tittel" className="font-serif text-[1.75rem] leading-tight tracking-[-0.01em]">Profilen er på plass</h2>
               <p className="mt-2 leading-relaxed text-ink-soft">
-                Neste steg er merkevareanalysen. Spott leser nettsiden og skriver hva den forstår om bedriften, og du retter det som ikke stemmer.
+                Neste steg er merkevareanalysen. Spyd leser nettsiden og skriver hva den forstår om bedriften, og du retter det som ikke stemmer.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
-                <Link href="/merkevare" className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper">Til merkevareanalysen</Link>
-                <Link href="/profil#hent-fra-nettside" className="rounded-full border border-ink px-5 py-2.5 text-sm font-semibold">Hent logo og bilder</Link>
+                <Link href="/merkevare" className="rounded-lg bg-terra-deep px-5 py-2.5 text-sm font-semibold text-paper hover:bg-terra-deeper">Til merkevareanalysen</Link>
+                <Link href="/profil#hent-fra-nettside" className="rounded-lg border border-ink hover:bg-sand px-5 py-2.5 text-sm font-semibold">Hent logo og bilder</Link>
               </div>
 
               <div className="mt-8 border-t border-line pt-6">
-                <h3 className="font-bold">Trenger dere hjelp med det visuelle?</h3>
+                <h3 className="font-semibold">Trenger dere hjelp med det visuelle?</h3>
                 <p className="mt-1 text-sm text-ink-soft">Kryss av for det dere ønsker hjelp med.</p>
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   {SERVICES.map((item) => (
-                    <label key={item} className={"flex cursor-pointer items-start gap-3 rounded-2xl border p-4 text-sm font-semibold " + (requests.includes(item) ? "border-ink bg-mist" : "border-line")}>
-                      <input type="checkbox" checked={requests.includes(item)} onChange={() => setRequests((c) => (c.includes(item) ? c.filter((x) => x !== item) : [...c, item]))} className="mt-0.5 accent-spot" />
+                    <label key={item} className={"flex cursor-pointer items-start gap-3 rounded-xl border p-4 text-sm font-semibold " + (requests.includes(item) ? "border-ink bg-sand" : "border-line")}>
+                      <input type="checkbox" checked={requests.includes(item)} onChange={() => setRequests((c) => (c.includes(item) ? c.filter((x) => x !== item) : [...c, item]))} className="mt-0.5 accent-terra-deep" />
                       {item}
                     </label>
                   ))}
@@ -158,7 +158,7 @@ export function BrandAssistant({ orgName, profile, assets, hasTypography }: { or
                     setSubmitted(true);
                     setMessage({ tone: "success", text: "Takk! Ønskene er registrert på kontoen." });
                   })}
-                  className="mt-4 rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-paper disabled:opacity-40"
+                  className="mt-4 rounded-lg bg-terra-deep px-6 py-2.5 text-sm font-semibold text-paper hover:bg-terra-deeper disabled:opacity-40"
                 >
                   {pending ? "Sender …" : submitted ? "Sendt" : "Send ønskene"}
                 </button>
@@ -170,8 +170,8 @@ export function BrandAssistant({ orgName, profile, assets, hasTypography }: { or
       </section>
 
       <aside className="flex flex-col gap-4">
-        <div className="rounded-3xl border border-line p-5">
-          <h3 className="font-bold">Status</h3>
+        <div className="rounded-xl border border-line p-5">
+          <h3 className="font-semibold">Status</h3>
           <ul className="mt-3 flex flex-col gap-2 text-sm">
             {status.map((row) => (
               <li key={row.label} className="flex items-center justify-between gap-2">
@@ -180,10 +180,10 @@ export function BrandAssistant({ orgName, profile, assets, hasTypography }: { or
               </li>
             ))}
           </ul>
-          <Link href="/profil" className="mt-4 inline-block text-sm font-semibold underline underline-offset-4">Se hele profilen</Link>
+          <Link href="/profil" className="mt-4 inline-block text-sm font-semibold text-terra-deep underline underline-offset-4">Se hele profilen</Link>
         </div>
-        <p className="rounded-3xl bg-mist p-5 text-sm leading-relaxed text-ink-soft">
-          Spott foreslår, du bestemmer. Ingenting publiseres uten at du har godkjent det.
+        <p className="rounded-xl bg-sand p-5 text-sm leading-relaxed text-ink-soft">
+          Spyd foreslår, du bestemmer. Ingenting publiseres uten at du har godkjent det.
         </p>
       </aside>
     </div>

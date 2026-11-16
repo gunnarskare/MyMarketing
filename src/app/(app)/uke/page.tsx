@@ -7,7 +7,7 @@ import { addDays, isoWeek, osloParts, planningWeek } from "@/lib/week";
 import type { PostRow } from "./actions";
 import { WeekPlanner, type WeekOption } from "./week-planner";
 
-export const metadata: Metadata = { title: "Ukeplan" };
+export const metadata: Metadata = { title: "Innholdsplan" };
 
 // Gjelder også omskriving av innlegg, som kjøres som server action fra denne siden.
 export const maxDuration = 90;
@@ -16,21 +16,25 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 const MONTHS = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
 
-/** «Uke 47: 16.–22. november», eller «Uke 49: 30. november–6. desember». */
-function weekLabel(start: string): string {
+/** «16.–22. november», eller «30. november–6. desember». */
+function weekRange(start: string): string {
   const end = addDays(start, 6);
   const [, m1, d1] = start.split("-").map(Number);
   const [, m2, d2] = end.split("-").map(Number);
-  const range = m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2 - 1]}` : `${d1}. ${MONTHS[m1 - 1]}–${d2}. ${MONTHS[m2 - 1]}`;
-  return `Uke ${isoWeek(start)}: ${range}`;
+  return m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2 - 1]}` : `${d1}. ${MONTHS[m1 - 1]}–${d2}. ${MONTHS[m2 - 1]}`;
+}
+
+/** «Uke 47: 16.–22. november». */
+function weekLabel(start: string): string {
+  return `Uke ${isoWeek(start)}: ${weekRange(start)}`;
 }
 
 export default function WeekPage({ searchParams }: { searchParams: SearchParams }) {
   return (
     <>
       <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Ukeplan</h1>
-        <p className="max-w-2xl text-ink-soft">Spott skriver ukas innlegg. Du retter det du vil, godkjenner, og publiserer.</p>
+        <h1 className="font-serif text-4xl tracking-[-0.015em] sm:text-5xl">Innholdsplan</h1>
+        <p className="max-w-2xl text-ink-soft">Spyd skriver ukas innlegg. Du retter det du vil, godkjenner og publiserer.</p>
       </header>
       <Suspense fallback={<Loading />}>
         <WeekContent searchParams={searchParams} />
@@ -86,9 +90,9 @@ async function WeekContent({ searchParams }: { searchParams: SearchParams }) {
       access={hasAccess(billing)}
       analysisStatus={analysisResult.data?.status ?? null}
       weekOptions={weekOptions}
-      plans={plans.map((p) => ({ start: p.period_start, label: weekLabel(p.period_start) }))}
+      plans={plans.map((p) => ({ start: p.period_start, week: isoWeek(p.period_start), range: weekRange(p.period_start) }))}
       selectedWeek={selected?.period_start ?? null}
-      selectedLabel={selected ? weekLabel(selected.period_start) : null}
+      today={today}
       initialPosts={posts}
       assetUrls={assetUrls}
     />

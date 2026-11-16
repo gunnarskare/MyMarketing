@@ -1,9 +1,17 @@
-Copyright 2023 The Schibsted-Grotesk Project Authors (https://github.com/schibsted/schibsted-grotesk) SchibstedGrotesk-Italic[wght].ttf: Copyright 2023 The Schibsted-Grotesk Project Authors (https://github.com/schibsted/schibsted-grotesk)
+Fontene i denne mappen er lisensiert under SIL Open Font License, Version 1.1.
+Lisensteksten står nederst, og er også tilgjengelig med spørsmål og svar på http://scripts.sil.org/OFL
 
-This Font Software is licensed under the SIL Open Font License, Version 1.1.
-This license is copied below, and is also available with a FAQ at:
-http://scripts.sil.org/OFL
+spyd-serif-regular.woff2 (overskrifter)
+  Et utsnitt av Liberation Serif Regular 2.1.5: latinske tegn, uten hinting.
+  Digitized data copyright (c) 2010 Google Corporation with Reserved Font Arimo, Tinos and Cousine.
+  Copyright (c) 2012 Red Hat, Inc. with Reserved Font Name Liberation.
+  Utsnittet er en endret versjon. Derfor heter fonten «Spyd Serif» internt:
+  navnene Liberation, Arimo, Tinos og Cousine er reservert og brukes ikke på endrede versjoner.
+  Laget med fontTools: pyftsubset --no-hinting --flavor=woff2 med Google Fonts' latinske tegnsett.
 
+open-sans-latin-wght.woff2 (brødtekst og grensesnitt)
+  Open Sans med variabel vekt (300–800), latinske tegn. Fra @fontsource-variable/open-sans 5.3.0.
+  Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans)
 
 -----------------------------------------------------------
 SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007

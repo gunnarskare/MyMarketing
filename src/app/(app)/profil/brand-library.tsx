@@ -8,9 +8,9 @@ type Kind = "image" | "logo" | "font";
 type Asset = { id: string; kind: Kind; original_name: string; storage_path: string; mime_type: string; file_size: number; is_primary: boolean };
 
 /** Sendes når filer importeres fra nettsiden, så biblioteket henter listen på nytt. */
-export const ASSETS_CHANGED = "spott:brand-assets-changed";
+export const ASSETS_CHANGED = "spyd:brand-assets-changed";
 /** Sendes når fonter legges til eller slettes, så typografien ser endringen. */
-export const FONTS_CHANGED = "spott:fonts-changed";
+export const FONTS_CHANGED = "spyd:fonts-changed";
 const BUCKET = "brand-assets";
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 const FONT_MIME: Record<string, string> = { woff2: "font/woff2", woff: "font/woff", ttf: "font/ttf", otf: "font/otf" };
@@ -150,20 +150,20 @@ export function BrandLibrary({ orgId }: { orgId: string }) {
   const fonts = (assets ?? []).filter((a) => a.kind === "font");
 
   const uploadButton = (label: string, kind: Kind, accept: string) => (
-    <label className={"inline-flex cursor-pointer items-center rounded-full border border-ink px-4 py-2 text-sm font-semibold focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-spot " + (uploading ? "pointer-events-none opacity-50" : "")}>
+    <label className={"inline-flex cursor-pointer items-center rounded-lg border border-ink hover:bg-sand px-4 py-2 text-sm font-semibold focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink " + (uploading ? "pointer-events-none opacity-50" : "")}>
       {label}
       <input className="sr-only" type="file" accept={accept} multiple disabled={uploading} onChange={(e) => { void upload(e.currentTarget.files, kind); e.currentTarget.value = ""; }} />
     </label>
   );
 
   const card = (asset: Asset) => (
-    <li key={asset.id} className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-line">
-      <div className={"relative aspect-[4/3] " + (asset.kind === "logo" ? "bg-paper p-4" : "bg-mist")}>
+    <li key={asset.id} className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-line">
+      <div className={"relative aspect-[4/3] " + (asset.kind === "logo" ? "bg-paper p-4" : "bg-sand")}>
         {urls[asset.id] ? (
           // eslint-disable-next-line @next/next/no-img-element -- signerte, private adresser som utløper; next/image gir ingen gevinst her
           <img src={urls[asset.id]} alt={asset.original_name} className={"size-full " + (asset.kind === "logo" ? "object-contain" : "object-cover")} />
         ) : null}
-        {asset.is_primary ? <span className="absolute top-2 left-2 rounded-full bg-ink px-2.5 py-1 text-xs font-semibold text-paper">Hovedlogo</span> : null}
+        {asset.is_primary ? <span className="absolute top-2 left-2 rounded-md bg-ink px-2 py-0.5 text-xs font-semibold text-paper">Hovedlogo</span> : null}
       </div>
       <div className="flex flex-1 flex-col gap-2 border-t border-line p-3">
         <p className="truncate text-sm font-semibold" title={asset.original_name}>{asset.original_name}</p>
@@ -173,7 +173,7 @@ export function BrandLibrary({ orgId }: { orgId: string }) {
           <button type="button" disabled={busy === asset.id} onClick={() => void changeKind(asset, asset.kind === "logo" ? "image" : "logo")} className="underline underline-offset-2">
             {asset.kind === "logo" ? "Er et bilde" : "Er en logo"}
           </button>
-          <button type="button" disabled={busy === asset.id} onClick={() => void remove(asset)} className="text-spot underline underline-offset-2">Slett</button>
+          <button type="button" disabled={busy === asset.id} onClick={() => void remove(asset)} className="text-terra-deep underline underline-offset-2">Slett</button>
         </div>
       </div>
     </li>
@@ -182,9 +182,9 @@ export function BrandLibrary({ orgId }: { orgId: string }) {
   return (
     <section id="bibliotek" className="flex scroll-mt-24 flex-col gap-6 border-t border-line pt-8" aria-labelledby="bibliotek-tittel">
       <div>
-        <h2 id="bibliotek-tittel" className="text-2xl font-bold tracking-tight">Logoer, bilder og fonter</h2>
+        <h2 id="bibliotek-tittel" className="font-serif text-[1.75rem] leading-tight tracking-[-0.01em]">Logoer, bilder og fonter</h2>
         <p className="mt-2 max-w-2xl leading-relaxed text-ink-soft">
-          Filene ligger privat hos bedriften. Spott bruker dem når innlegg og grafikk lages.
+          Filene ligger privat hos bedriften. Spyd bruker dem når innlegg og grafikk lages.
         </p>
       </div>
 
@@ -201,34 +201,34 @@ export function BrandLibrary({ orgId }: { orgId: string }) {
       {assets === null ? <p className="text-sm text-ink-soft">Henter filene …</p> : (
         <>
           <div className="flex flex-col gap-3">
-            <h3 className="font-bold">Logoer <span className="font-normal text-ink-soft">({logos.length})</span></h3>
+            <h3 className="font-semibold">Logoer <span className="font-normal text-ink-soft">({logos.length})</span></h3>
             {logos.length ? (
               <>
                 {!logos.some((l) => l.is_primary) ? <p className="text-sm text-ink-soft">Velg hvilken logo som er hovedlogoen.</p> : null}
                 <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">{logos.map(card)}</ul>
               </>
-            ) : <p className="rounded-xl bg-mist px-4 py-4 text-sm text-ink-soft">Ingen logo ennå.</p>}
+            ) : <p className="rounded-xl bg-sand px-4 py-4 text-sm text-ink-soft">Ingen logo ennå.</p>}
           </div>
           <div className="flex flex-col gap-3">
-            <h3 className="font-bold">Bilder <span className="font-normal text-ink-soft">({images.length})</span></h3>
+            <h3 className="font-semibold">Bilder <span className="font-normal text-ink-soft">({images.length})</span></h3>
             {images.length ? <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">{images.map(card)}</ul>
-              : <p className="rounded-xl bg-mist px-4 py-4 text-sm text-ink-soft">Ingen bilder ennå.</p>}
+              : <p className="rounded-xl bg-sand px-4 py-4 text-sm text-ink-soft">Ingen bilder ennå.</p>}
           </div>
           <div className="flex flex-col gap-3">
-            <h3 className="font-bold">Fonter <span className="font-normal text-ink-soft">({fonts.length})</span></h3>
+            <h3 className="font-semibold">Fonter <span className="font-normal text-ink-soft">({fonts.length})</span></h3>
             {fonts.length ? (
-              <ul className="divide-y divide-line rounded-2xl border border-line">
+              <ul className="divide-y divide-line rounded-xl border border-line">
                 {fonts.map((asset) => (
                   <li key={asset.id} className="flex items-center justify-between gap-3 p-4">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold">{asset.original_name}</p>
                       <p className="text-xs text-ink-soft">{sizeLabel(asset.file_size)}</p>
                     </div>
-                    <button type="button" disabled={busy === asset.id} onClick={() => void remove(asset)} className="shrink-0 text-xs font-semibold text-spot underline underline-offset-2">Slett</button>
+                    <button type="button" disabled={busy === asset.id} onClick={() => void remove(asset)} className="shrink-0 text-xs font-semibold text-terra-deep underline underline-offset-2">Slett</button>
                   </li>
                 ))}
               </ul>
-            ) : <p className="rounded-xl bg-mist px-4 py-4 text-sm text-ink-soft">Ingen fonter ennå. Du kan også velge fonter fra Google under Typografi.</p>}
+            ) : <p className="rounded-xl bg-sand px-4 py-4 text-sm text-ink-soft">Ingen fonter ennå. Du kan også velge fonter fra Google under Typografi.</p>}
             {fonts.length ? <p className="text-sm text-ink-soft">Velg hvor fontene skal brukes under <a href="#typografi" className="font-semibold underline">Typografi</a>.</p> : null}
           </div>
         </>

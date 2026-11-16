@@ -6,11 +6,11 @@ import { company } from "@/lib/company";
 
 export const metadata: Metadata = {
   title: "Slett dataene dine",
-  description: "Slik ber du om at kontoen og alle opplysningene i Spott slettes, og slik fjerner du Spotts tilgang til Facebook, Instagram og LinkedIn.",
+  description: "Slik ber du om at kontoen og alle opplysningene i Spyd slettes, og slik fjerner du Spyds tilgang til Facebook, Instagram og LinkedIn.",
 };
 
 const deleteMail = company.email
-  ? `mailto:${company.email}?subject=${encodeURIComponent("Slett kontoen min i Spott")}`
+  ? `mailto:${company.email}?subject=${encodeURIComponent("Slett kontoen min i Spyd")}`
   : null;
 
 export default function DataDeletionPage() {
@@ -19,14 +19,14 @@ export default function DataDeletionPage() {
       <SiteHeader />
       <main className="flex-1">
         <article className="mx-auto w-full max-w-6xl px-6 pt-10 pb-24">
-          <h1 className="text-[clamp(2.25rem,9vw,4rem)] leading-none font-black tracking-[-0.03em]">
+          <h1 className="font-serif text-[clamp(2.5rem,8vw,4rem)] leading-[1.05] tracking-[-0.015em]">
             Slett dataene dine
           </h1>
           <p className="mt-4 text-ink-soft">Sist oppdatert 16. november 2026</p>
 
           <div className="legal mt-10">
             <p>
-              Du kan når som helst be oss slette kontoen din og alt bedriften har lagt inn i Spott. Vi sletter
+              Du kan når som helst be oss slette kontoen din og alt bedriften har lagt inn i Spyd. Vi sletter
               senest innen én måned og sier fra på e-post når det er gjort.
             </p>
 
@@ -46,8 +46,8 @@ export default function DataDeletionPage() {
             <ul>
               <li>Kontoen din: e-postadressen og innloggingen.</li>
               <li>Bedriften og merkevareprofilen.</li>
-              <li>Merkevareanalysen og teksten Spott har lest fra nettsiden.</li>
-              <li>Alle innlegg og utkast i Spott.</li>
+              <li>Merkevareanalysen og teksten Spyd har lest fra nettsiden.</li>
+              <li>Alle innlegg og utkast i Spyd.</li>
               <li>Logoer, bilder og fonter i biblioteket.</li>
               <li>Tilkoblede kontoer på Facebook, Instagram og LinkedIn, og tilgangsnøklene til dem.</li>
             </ul>
@@ -65,31 +65,31 @@ export default function DataDeletionPage() {
               <li>Tekniske logger hos leverandørene våre. De slettes automatisk etter en begrenset periode.</li>
             </ul>
 
-            <h2 id="facebook-og-instagram" className="scroll-mt-6">Fjern Spotts tilgang til Facebook og Instagram</h2>
-            <p>Har du koblet Facebook eller Instagram til Spott, kan du fjerne tilgangen hos Facebook:</p>
+            <h2 id="facebook-og-instagram" className="scroll-mt-6">Fjern Spyds tilgang til Facebook og Instagram</h2>
+            <p>Har du koblet Facebook eller Instagram til Spyd, kan du fjerne tilgangen hos Facebook:</p>
             <ul>
               <li>Gå til Innstillinger og personvern, og så Innstillinger.</li>
               <li>
-                Åpne Apper og nettsteder. Har du koblet til en Facebook-side, ligger Spott under
+                Åpne Apper og nettsteder. Har du koblet til en Facebook-side, ligger Spyd under
                 Bedriftsintegrasjoner.
               </li>
-              <li>Velg Spott, og trykk Fjern.</li>
+              <li>Velg Spyd, og trykk Fjern.</li>
             </ul>
             <p>
               Instagram-tilgangen går gjennom Facebook-siden, så den forsvinner samtidig. Menyene kan hete litt
               annerledes i appen enn i nettleseren.
             </p>
 
-            <h2 id="linkedin" className="scroll-mt-6">Fjern Spotts tilgang til LinkedIn</h2>
+            <h2 id="linkedin" className="scroll-mt-6">Fjern Spyds tilgang til LinkedIn</h2>
             <ul>
               <li>Gå til Innstillinger, og så Personvern for data.</li>
-              <li>Åpne Tillatte tjenester, velg Spott og fjern tilgangen.</li>
+              <li>Åpne Tillatte tjenester, velg Spyd og fjern tilgangen.</li>
             </ul>
 
             <h2>Når du bare fjerner tilgangen</h2>
             <p>
-              Fjerner du tilgangen hos Facebook eller LinkedIn, kan Spott ikke lenger publisere eller hente tall
-              fra kontoene. Opplysningene som ligger i Spott, slettes ikke av det alene. Vil du ha dem slettet,
+              Fjerner du tilgangen hos Facebook eller LinkedIn, kan Spyd ikke lenger publisere eller hente tall
+              fra kontoene. Opplysningene som ligger i Spyd, slettes ikke av det alene. Vil du ha dem slettet,
               ber du oss om det <a href="#be-om-sletting">som beskrevet over</a>.
             </p>
             <p>

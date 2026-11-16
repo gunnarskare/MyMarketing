@@ -6,7 +6,7 @@ import { company } from "@/lib/company";
 
 export const metadata: Metadata = {
   title: "Personvernerklæring",
-  description: `Slik behandler ${company.legalName} personopplysninger i Spott.`,
+  description: `Slik behandler ${company.legalName} personopplysninger i Spyd.`,
 };
 
 export default function PrivacyPage() {
@@ -15,20 +15,20 @@ export default function PrivacyPage() {
       <SiteHeader />
       <main className="flex-1">
         <article className="mx-auto w-full max-w-6xl px-6 pt-10 pb-24">
-          <h1 className="text-[clamp(2.25rem,9vw,4rem)] leading-none font-black tracking-[-0.03em]">
+          <h1 className="font-serif text-[clamp(2.5rem,8vw,4rem)] leading-[1.05] tracking-[-0.015em]">
             Personvern&shy;erklæring
           </h1>
           <p className="mt-4 text-ink-soft">Sist oppdatert 16. november 2026</p>
 
           <div className="legal mt-10">
             <p>
-              Spott er en tjeneste fra {company.legalName} (org.nr.{"\u00a0"}{company.orgNumber}). Vi er
-              behandlingsansvarlig for personopplysningene som behandles når du bruker Spott. Her
+              Spyd er en tjeneste fra {company.legalName} (org.nr.{"\u00a0"}{company.orgNumber}). Vi er
+              behandlingsansvarlig for personopplysningene som behandles når du bruker Spyd. Her
               står det hvilke opplysninger vi behandler, hvorfor vi gjør det, og hvilke rettigheter
               du har.
             </p>
             <p>
-              Avtalen om bruk av Spott står i <Link href="/vilkar">vilkårene</Link>.
+              Avtalen om bruk av Spyd står i <Link href="/vilkar">vilkårene</Link>.
             </p>
 
             <h2>Opplysninger vi behandler</h2>
@@ -50,11 +50,11 @@ export default function PrivacyPage() {
                 nettsiden deres. Bilder kan vise personer.
               </li>
               <li>
-                <strong>Merkevareanalyse:</strong> tekst Spott leser fra de offentlige sidene på
+                <strong>Merkevareanalyse:</strong> tekst Spyd leser fra de offentlige sidene på
                 nettsiden dere oppgir, og analysen som lages av den.
               </li>
               <li>
-                <strong>Innlegg:</strong> utkastene Spott lager for bedriften, og det du retter,
+                <strong>Innlegg:</strong> utkastene Spyd lager for bedriften, og det du retter,
                 godkjenner og merker som publisert.
               </li>
               <li>
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong>Lage analyse og innlegg med AI:</strong> profilen, teksten fra nettsiden og
-                analysen sendes til en AI-tjeneste som skriver forslag. Når Spott lager eller skriver
+                analysen sendes til en AI-tjeneste som skriver forslag. Når Spyd lager eller skriver
                 om innlegg, sendes også innlegget, det du ber om, temaene fra de siste innleggene og
                 filnavnene på bildene i biblioteket, men ikke selve bildene. Grunnlaget er avtalen med
                 deg. Forslagene er bare forslag til du har godkjent dem.
@@ -100,7 +100,7 @@ export default function PrivacyPage() {
 
             <h2>Informasjonskapsler</h2>
             <p>
-              Spott bruker bare informasjonskapsler som trengs for at innloggingen skal virke. De
+              Spyd bruker bare informasjonskapsler som trengs for at innloggingen skal virke. De
               holder deg innlogget, og de slettes når du logger ut eller når de utløper. Fordi de er
               nødvendige for tjenesten du har bedt om, ber vi ikke om samtykke til dem.
             </p>
@@ -170,13 +170,13 @@ export default function PrivacyPage() {
 
             <h2>Sikkerhet</h2>
             <p>
-              All trafikk til Spott er kryptert. Databasen har tilgangsregler som gjør at én kunde
+              All trafikk til Spyd er kryptert. Databasen har tilgangsregler som gjør at én kunde
               ikke kan se en annen kundes opplysninger, og passord lagres aldri i lesbar form.
             </p>
 
             <h2>Når tjenesten endres</h2>
             <p>
-              Spott er under utvikling. Før vi tar i bruk nye funksjoner som behandler
+              Spyd er under utvikling. Før vi tar i bruk nye funksjoner som behandler
               personopplysninger på nye måter, for eksempel tilkobling til kontoer i sosiale medier,
               oppdaterer vi denne erklæringen. Datoen
               øverst viser når den sist ble endret.

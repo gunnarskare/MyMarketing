@@ -1,27 +1,41 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
-// Schibsted Grotesk: norsk avisgrotesk, åpen lisens (se fonts/LICENSE.txt).
-const schibsted = localFont({
-  src: "./fonts/schibsted-grotesk-latin.woff2",
-  variable: "--font-schibsted",
-  weight: "400 900",
+// Skriftene fra merkevareprofilen, lagret hos oss selv (lisenser i fonts/LICENSE.txt).
+// Overskrifter: Liberation Serif Regular, som utsnitt med navnet «Spyd Serif».
+const serif = localFont({
+  src: "./fonts/spyd-serif-regular.woff2",
+  variable: "--font-spyd-serif",
+  weight: "400",
+  display: "swap",
+  adjustFontFallback: "Times New Roman",
+});
+
+// Brødtekst, knapper og menyer: Open Sans med variabel vekt (Regular og Semibold brukes mest).
+const sans = localFont({
+  src: "./fonts/open-sans-latin-wght.woff2",
+  variable: "--font-open-sans",
+  weight: "300 800",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Spott – ukas innlegg, ferdig skrevet",
-    template: "%s · Spott",
+    default: "Spyd – markedsføring med tydelig retning",
+    template: "%s · Spyd",
   },
   description:
-    "Spott skriver ukas innlegg til Facebook, Instagram og LinkedIn for små bedrifter. Ingenting publiseres før du har godkjent.",
+    "Spyd gjør nettsiden til en merkevareprofil og lager ukas innlegg til Facebook, Instagram og LinkedIn. Du godkjenner før noe publiseres.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#fff3e3",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="nb" className={`${schibsted.variable} h-full antialiased`}>
+    <html lang="nb" className={`${serif.variable} ${sans.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

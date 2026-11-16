@@ -12,9 +12,9 @@ export default function BrandAnalysisPage() {
   return (
     <>
       <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Merkevareanalyse</h1>
+        <h1 className="font-serif text-4xl tracking-[-0.015em] sm:text-5xl">Merkevareanalyse</h1>
         <p className="max-w-2xl text-ink-soft">
-          Det Spott vet om bedriften: målgrupper, tone, budskap og muligheter. Rett det som ikke stemmer, og godkjenn.
+          Det Spyd vet om bedriften: målgrupper, tone, budskap og muligheter. Rett det som ikke stemmer, og godkjenn.
         </p>
       </header>
       <Suspense fallback={<Loading />}>

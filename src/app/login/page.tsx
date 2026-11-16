@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Field, SubmitButton } from "@/components/form";
 import { Notice } from "@/components/notice";
-import { Wordmark } from "@/components/wordmark";
+import { SpearSymbol, Wordmark } from "@/components/wordmark";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { isGoogleLoginEnabled } from "@/lib/supabase/providers";
 import { login, signInWithGoogle, signup } from "./actions";
@@ -30,59 +30,74 @@ export default function LoginPage({ searchParams }: { searchParams: SearchParams
   const configured = isSupabaseConfigured();
 
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-6 py-16">
-      <header className="flex flex-col gap-6">
+    <div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+      <aside className="on-dark relative hidden flex-col justify-between overflow-hidden bg-terra p-12 text-paper lg:flex">
         <Link href="/" className="self-start rounded-sm">
-          <Wordmark className="text-3xl" />
+          <Wordmark tone="mono" className="h-12 w-auto" />
         </Link>
-        <h1 className="text-3xl font-extrabold tracking-tight">Logg inn</h1>
-      </header>
-
-      {!configured ? (
-        <Notice>Databasen er ikke koblet til ennå, så innlogging er ikke mulig.</Notice>
-      ) : null}
-      <Suspense fallback={null}>
-        <LoginMessage searchParams={searchParams} />
-      </Suspense>
-
-      <form className="flex flex-col gap-4">
-        <Field label="E-post" name="email" type="email" autoComplete="email" required />
-        <Field
-          label="Passord"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          hint="Minst 8 tegn når du oppretter konto."
-          required
-        />
-        <div className="flex flex-col gap-2 pt-2">
-          <SubmitButton formAction={login} disabled={!configured}>
-            Logg inn
-          </SubmitButton>
-          <SubmitButton formAction={signup} variant="secondary" disabled={!configured}>
-            Opprett konto
-          </SubmitButton>
+        <div className="relative">
+          <p className="max-w-[11em] font-serif text-5xl leading-[1.05] tracking-[-0.015em]">Markedsføring med tydelig retning</p>
+          <p className="mt-5 max-w-sm text-lg leading-relaxed text-white">
+            Fra merkevareprofil til ferdige innlegg. Du godkjenner før noe publiseres.
+          </p>
         </div>
-      </form>
+        <SpearSymbol className="pointer-events-none absolute -right-16 -bottom-20 size-[26rem] text-paper/10" />
+      </aside>
 
-      {configured ? (
+      <main className="mx-auto flex w-full max-w-sm flex-col justify-center gap-6 px-6 py-16">
+        <header className="flex flex-col gap-8">
+          <Link href="/" className="self-start rounded-sm lg:hidden">
+            <Wordmark className="h-11 w-auto" />
+          </Link>
+          <h1 className="font-serif text-5xl tracking-[-0.015em]">Logg inn</h1>
+        </header>
+
+        {!configured ? (
+          <Notice>Databasen er ikke koblet til ennå, så innlogging er ikke mulig.</Notice>
+        ) : null}
         <Suspense fallback={null}>
-          <GoogleLogin />
+          <LoginMessage searchParams={searchParams} />
         </Suspense>
-      ) : null}
 
-      <p className="text-sm text-ink-soft">
-        Når du oppretter en konto, godtar du{" "}
-        <Link href="/vilkar" className="font-semibold text-ink underline underline-offset-2">
-          vilkårene
-        </Link>{" "}
-        på vegne av bedriften. Les hvordan vi behandler opplysningene dine i{" "}
-        <Link href="/personvern" className="font-semibold text-ink underline underline-offset-2">
-          personvernerklæringen
-        </Link>
-        .
-      </p>
-    </main>
+        <form className="flex flex-col gap-4">
+          <Field label="E-post" name="email" type="email" autoComplete="email" required />
+          <Field
+            label="Passord"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            hint="Minst 8 tegn når du oppretter konto."
+            required
+          />
+          <div className="flex flex-col gap-2 pt-2">
+            <SubmitButton formAction={login} disabled={!configured}>
+              Logg inn
+            </SubmitButton>
+            <SubmitButton formAction={signup} variant="secondary" disabled={!configured}>
+              Opprett konto
+            </SubmitButton>
+          </div>
+        </form>
+
+        {configured ? (
+          <Suspense fallback={null}>
+            <GoogleLogin />
+          </Suspense>
+        ) : null}
+
+        <p className="text-sm leading-relaxed text-ink-soft">
+          Når du oppretter en konto, godtar du{" "}
+          <Link href="/vilkar" className="font-semibold text-terra-deep underline underline-offset-2">
+            vilkårene
+          </Link>{" "}
+          på vegne av bedriften. Les hvordan vi behandler opplysningene dine i{" "}
+          <Link href="/personvern" className="font-semibold text-terra-deep underline underline-offset-2">
+            personvernerklæringen
+          </Link>
+          .
+        </p>
+      </main>
+    </div>
   );
 }
 

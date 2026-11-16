@@ -34,7 +34,7 @@ export async function claimQuota(supabase: SupabaseClient, orgId: string, type: 
   const result = data as { allowed: boolean; reason: "org" | "global" | null; remaining: number; retry_after_seconds: number; run_id?: string | null };
   if (result.allowed) return { allowed: true, remaining: result.remaining, runId: result.run_id ?? null };
   if (result.reason === "global") {
-    return { allowed: false, message: `Spott har nådd dagens grense for ${LABELS[type]}. Prøv igjen ${inTime(result.retry_after_seconds)}.` };
+    return { allowed: false, message: `Spyd har nådd dagens grense for ${LABELS[type]}. Prøv igjen ${inTime(result.retry_after_seconds)}.` };
   }
   return { allowed: false, message: `Dere har brukt opp dagens ${LABELS[type]}. Prøv igjen ${inTime(result.retry_after_seconds)}.` };
 }

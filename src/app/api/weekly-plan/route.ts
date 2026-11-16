@@ -94,6 +94,6 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "";
     if (message.includes("OPENAI_API_KEY")) return NextResponse.json({ error: "AI-tjenesten er ikke satt opp på serveren." }, { status: 503 });
     if (isTimeout(error)) return NextResponse.json({ error: "Det tok for lang tid å skrive innleggene. Prøv igjen, gjerne med færre innlegg." }, { status: 504 });
-    return NextResponse.json({ error: message.startsWith("Kunne ikke") ? message : "Spott klarte ikke å lage utkastene. Prøv igjen." }, { status: 502 });
+    return NextResponse.json({ error: message.startsWith("Kunne ikke") ? message : "Spyd klarte ikke å lage utkastene. Prøv igjen." }, { status: 502 });
   }
 }

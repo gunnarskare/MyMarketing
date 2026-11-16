@@ -8,10 +8,11 @@ export function getStripe(): Stripe {
   if (client) return client;
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY mangler på serveren.");
-  client = new Stripe(key, { appInfo: { name: "Spott", url: "https://www.spott.no" } });
+  client = new Stripe(key, { appInfo: { name: "Spyd", url: "https://spyd.no" } });
   return client;
 }
 
+// Oppslagsnøkkelen er satt i Stripe før navnet ble Spyd. Den vises ikke for kundene, så den beholdes.
 export const PRICE_LOOKUP_KEY = "spott_monthly_nok";
 
 /** Prisen hentes med oppslagsnøkkel, så samme kode virker i test- og live-modus. */

@@ -30,7 +30,7 @@ export async function getBillingAccount(supabase: SupabaseClient, orgId: string)
   return (data as BillingAccount | null) ?? null;
 }
 
-export const PAYWALL_MESSAGE = "Dette krever et aktivt Spott-abonnement. Du kan starte det under Abonnement.";
+export const PAYWALL_MESSAGE = "Dette krever et aktivt Spyd-abonnement. Du kan starte det under Abonnement.";
 
 /** Skriver abonnementet fra Stripe inn i databasen. Henter alltid siste versjon, så rekkefølgen på hendelser ikke spiller noen rolle. */
 export async function syncSubscription(subscription: Stripe.Subscription, orgIdHint?: string | null): Promise<void> {

@@ -1,24 +1,30 @@
 @import "tailwindcss";
 
 /*
- * Spott: farger og skrift.
- * Prikken (spot) er det eneste ornamentet, og den betyr alltid noe:
- * merket, en dag med et innlegg, eller at noe er klart.
+ * Spyd: farger og skrift fra merkevareprofilen (side 07 og 08).
+ * Krem og blekk bærer innholdet. Lys terrakotta brukes på utvalgte flater, stor tekst og små detaljer.
+ * Dyp terrakotta brukes på knapper og lenker. Liten tekst skal aldri stå i lys terrakotta på krem
+ * (4,34:1): bruk dyp terrakotta (6,29:1), eller hvit tekst på lys terrakotta (4,75:1).
  */
 @theme {
-  --color-paper: #ffffff;
-  --color-mist: #eef2f7;
-  --color-ink: #101b3b;
-  --color-ink-soft: #4a5672;
-  --color-ink-muted: #b9c3dc; /* dempet tekst på mørk bakgrunn */
-  --color-ink-line: #2d3a63; /* linjer på mørk bakgrunn */
-  --color-spot: #dc2f25;
-  --color-ok: #157a4b;
-  --color-line: #d5dbe6;
+  --color-paper: #fff3e3; /* Krem: bakgrunn og logofarge */
+  --color-sand: #f4e4d6; /* Sand: rolige støtteflater */
+  --color-ink: #2b211d; /* Blekk: brødtekst og mørke flater (14,34:1 på krem) */
+  --color-ink-soft: #62514a; /* Dempet tekst (6,9:1 på krem, 6,1:1 på sand) */
+  --color-ink-muted: #d8c5b6; /* Dempet tekst på blekk (9,4:1) */
+  --color-terra: #b45843; /* Terrakotta: hovedflate og gjenkjennelse */
+  --color-terra-deep: #963f30; /* Dyp terrakotta: knapper og lenker */
+  --color-terra-deeper: #7e3428; /* Knapper når musen er over eller de trykkes */
+  --color-clay: #d6a78f; /* Leire: små grafiske detaljer, aldri tekst */
+  --color-line: #e2cbb9; /* Hårlinjer og kantene på kort */
+  --color-edge: #94796b; /* Kanten på skjemafelt (3,7:1 på krem) */
+  --color-ok: #2f6b3f; /* Godkjent og tilkoblet (5,8:1 på krem) */
 }
 
+/* Liberation Serif i overskrifter, Open Sans i brødtekst og grensesnitt. Georgia og Arial er reserve. */
 @theme inline {
-  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-open-sans), Arial, Helvetica, sans-serif;
+  --font-serif: var(--font-spyd-serif), Georgia, "Times New Roman", serif;
 }
 
 :root {
@@ -34,6 +40,10 @@ body {
   color: var(--color-ink);
 }
 
+::selection {
+  background: color-mix(in srgb, var(--color-clay) 55%, transparent);
+}
+
 /* Synlig tastaturfokus overalt. */
 :focus-visible {
   outline: 3px solid var(--color-ink);
@@ -43,27 +53,9 @@ body {
   outline-color: var(--color-paper);
 }
 
-/* Det ene bevegelsesøyeblikket på forsiden: prikken kommer inn. */
-@keyframes spot-in {
-  from {
-    opacity: 0;
-    transform: scale(0.82);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.spot-in {
-  animation: spot-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-  .spot-in {
-    animation: none;
   }
 }
 
@@ -71,21 +63,22 @@ body {
 .legal {
   max-width: 42rem;
   font-size: 1.0625rem;
-  line-height: 1.7;
+  line-height: 1.65;
   overflow-wrap: break-word;
   hyphens: auto;
 }
 .legal h2 {
   margin-top: 3rem;
-  font-size: 1.625rem;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
 }
 .legal h3 {
   margin-top: 1.75rem;
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .legal p,
 .legal ul {
@@ -95,12 +88,19 @@ body {
   list-style: disc;
   padding-left: 1.25rem;
 }
+.legal li::marker {
+  color: var(--color-terra);
+}
 .legal li + li {
   margin-top: 0.5rem;
 }
 .legal a {
+  color: var(--color-terra-deep);
   font-weight: 600;
   text-decoration: underline;
-  text-decoration-thickness: 2px;
+  text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+}
+.legal a:hover {
+  text-decoration-thickness: 2px;
 }

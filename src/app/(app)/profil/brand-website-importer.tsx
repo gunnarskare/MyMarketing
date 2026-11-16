@@ -87,9 +87,9 @@ export function BrandWebsiteImporter({ defaultWebsite }: { defaultWebsite: strin
   return (
     <section id="hent-fra-nettside" className="flex scroll-mt-24 flex-col gap-5 border-t border-line pt-8" aria-labelledby="hent-tittel">
       <div>
-        <h2 id="hent-tittel" className="text-2xl font-bold tracking-tight">Hent fra nettsiden</h2>
+        <h2 id="hent-tittel" className="font-serif text-[1.75rem] leading-tight tracking-[-0.01em]">Hent fra nettsiden</h2>
         <p className="mt-2 max-w-2xl leading-relaxed text-ink-soft">
-          Spott leser opptil ti sider og finner logoer, bilder, farger og fonter. Du velger selv hva som skal inn i biblioteket.
+          Spyd leser opptil ti sider og finner logoer, bilder, farger og fonter. Du velger selv hva som skal inn i biblioteket.
         </p>
       </div>
       <form className="flex flex-col gap-3 sm:flex-row" onSubmit={(e) => { e.preventDefault(); void analyze(); }}>
@@ -103,9 +103,9 @@ export function BrandWebsiteImporter({ defaultWebsite }: { defaultWebsite: strin
           onChange={(e) => setWebsite(e.target.value)}
           placeholder="dinbedrift.no"
           required
-          className="min-h-12 min-w-0 flex-1 rounded-xl border border-line bg-paper px-4 text-base"
+          className="min-h-12 min-w-0 flex-1 rounded-lg border border-edge bg-white/60 px-4 text-base"
         />
-        <button type="submit" disabled={busy !== null || !website.trim()} className="min-h-12 rounded-full bg-ink px-6 font-semibold text-paper disabled:opacity-50">
+        <button type="submit" disabled={busy !== null || !website.trim()} className="min-h-12 rounded-lg bg-terra-deep px-6 font-semibold text-paper hover:bg-terra-deeper disabled:opacity-50">
           {busy === "analyze" ? "Leser nettsiden …" : "Les nettsiden"}
         </button>
       </form>
@@ -130,18 +130,18 @@ export function BrandWebsiteImporter({ defaultWebsite }: { defaultWebsite: strin
             const items = analysis.assets.filter((a) => a.category === category);
             return (
               <fieldset key={category} className="flex flex-col gap-3">
-                <legend className="mb-3 font-bold">{category} <span className="font-normal text-ink-soft">({items.length})</span></legend>
+                <legend className="mb-3 font-semibold">{category} <span className="font-normal text-ink-soft">({items.length})</span></legend>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {items.map((asset) => {
                     const checked = selected.includes(asset.url);
                     return (
-                      <label key={asset.url} className={"flex cursor-pointer flex-col overflow-hidden rounded-2xl border focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-spot " + (checked ? "border-ink ring-1 ring-ink" : "border-line") + (full && !checked ? " opacity-50" : "")}>
-                        <span className="flex aspect-[4/3] items-center justify-center bg-mist p-2">
+                      <label key={asset.url} className={"flex cursor-pointer flex-col overflow-hidden rounded-xl border focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink " + (checked ? "border-ink ring-1 ring-ink" : "border-line") + (full && !checked ? " opacity-50" : "")}>
+                        <span className="flex aspect-[4/3] items-center justify-center bg-sand p-2">
                           {/* eslint-disable-next-line @next/next/no-img-element -- forhåndsvisning rett fra kundens egen nettside */}
                           <img src={asset.url} alt="" loading="lazy" referrerPolicy="no-referrer" className="size-full object-contain" />
                         </span>
                         <span className="flex items-start gap-2 p-3">
-                          <input type="checkbox" checked={checked} disabled={full && !checked} onChange={(e) => toggle(asset.url, e.target.checked)} className="mt-0.5 accent-spot" />
+                          <input type="checkbox" checked={checked} disabled={full && !checked} onChange={(e) => toggle(asset.url, e.target.checked)} className="mt-0.5 accent-terra-deep" />
                           <span className="min-w-0">
                             <span className="block truncate text-xs font-semibold">{asset.name}</span>
                             {asset.sourcePage ? <span className="block truncate text-xs text-ink-soft">{new URL(asset.sourcePage).pathname}</span> : null}
@@ -156,18 +156,18 @@ export function BrandWebsiteImporter({ defaultWebsite }: { defaultWebsite: strin
           })}
 
           {analysis.assets.length ? (
-            <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-paper/95 p-3 shadow-[0_10px_30px_-20px_rgb(16_27_59/0.5)] backdrop-blur">
-              <button type="button" onClick={() => void importSelected()} disabled={busy !== null || !selected.length} className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper disabled:opacity-50">
+            <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-paper/95 p-3 shadow-[0_10px_30px_-20px_rgb(16_27_59/0.5)] backdrop-blur">
+              <button type="button" onClick={() => void importSelected()} disabled={busy !== null || !selected.length} className="rounded-lg bg-terra-deep px-5 py-2.5 text-sm font-semibold text-paper hover:bg-terra-deeper disabled:opacity-50">
                 {busy === "import" ? "Henter filene …" : `Legg ${selected.length} ${selected.length === 1 ? "fil" : "filer"} i biblioteket`}
               </button>
               <span className="text-sm text-ink-soft">{full ? `Maks ${MAX_IMPORT} om gangen` : `${selected.length} av maks ${MAX_IMPORT} valgt`}</span>
-              {selected.length ? <button type="button" onClick={() => setSelected([])} className="text-sm font-semibold underline underline-offset-2">Fjern valgene</button> : null}
+              {selected.length ? <button type="button" onClick={() => setSelected([])} className="text-sm font-semibold text-terra-deep underline underline-offset-2">Fjern valgene</button> : null}
             </div>
           ) : null}
 
           {analysis.colors.length ? (
             <div>
-              <h3 className="font-bold">Farger</h3>
+              <h3 className="font-semibold">Farger</h3>
               <p className="mt-1 text-sm text-ink-soft">Mest brukt først. Grå og svart-hvitt står til slutt.</p>
               <ul className="mt-3 flex flex-wrap gap-2">
                 {analysis.colors.map((color) => (
@@ -181,15 +181,15 @@ export function BrandWebsiteImporter({ defaultWebsite }: { defaultWebsite: strin
           ) : null}
           {analysis.fonts.length ? (
             <div>
-              <h3 className="font-bold">Fonter</h3>
+              <h3 className="font-semibold">Fonter</h3>
               <p className="mt-1 text-sm text-ink-soft">Fonter nettsiden bruker. Velg dem under Typografi hvis de skal gjelde innholdet også.</p>
-              <ul className="mt-3 flex flex-wrap gap-2">{analysis.fonts.map((font) => <li key={font} className="rounded-full bg-mist px-3 py-1.5 text-sm">{font}</li>)}</ul>
+              <ul className="mt-3 flex flex-wrap gap-2">{analysis.fonts.map((font) => <li key={font} className="rounded-md bg-sand px-3 py-1.5 text-sm">{font}</li>)}</ul>
             </div>
           ) : null}
         </div>
       ) : null}
       <p className="text-sm leading-relaxed text-ink-soft">
-        Spott henter bare det som er åpent tilgjengelig, og følger ikke innlogginger. SVG-logoer lagres som PNG.
+        Spyd henter bare det som er åpent tilgjengelig, og følger ikke innlogginger. SVG-logoer lagres som PNG.
         Sjekk at bedriften har rett til å bruke bildene.
       </p>
     </section>

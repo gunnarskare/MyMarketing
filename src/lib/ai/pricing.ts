@@ -1,12 +1,12 @@
 // Hva OpenAI tar betalt per modell, og anslått kostnad for ett AI-kall. Prisene står bare her.
 //
 // Kilde: OpenAIs prisside, https://developers.openai.com/api/docs/pricing (lest 14. november 2026).
-// - Standard-nivå. Spott bruker ikke Batch, Flex eller Fast.
-// - Kort kontekst (inntil 272K input-tokens per kall). Lang kontekst koster mer, men Spott kapper
+// - Standard-nivå. Spyd bruker ikke Batch, Flex eller Fast.
+// - Kort kontekst (inntil 272K input-tokens per kall). Lang kontekst koster mer, men Spyd kapper
 //   alt som sendes til AI-en langt under den grensen (se brand-analysis.ts og weekly-plan.ts).
 // - USD per 1M tokens. Resonnerings-tokens er med i output-tokens og koster som output.
 // - gpt-5.6-sol har kampanjepris til 30. november 2026.
-// Oppdater tabellen når OpenAI endrer prisene eller Spott tar i bruk en ny modell.
+// Oppdater tabellen når OpenAI endrer prisene eller Spyd tar i bruk en ny modell.
 
 export type ModelPrice = {
   input: number;

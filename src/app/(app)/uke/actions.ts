@@ -116,6 +116,6 @@ export async function rewritePost(id: string, instruction: string): Promise<Acti
   } catch (error) {
     console.error("Rewrite failed:", error instanceof Error ? error.message : error);
     if (isTimeout(error)) return { ok: false, message: "Omskrivingen tok for lang tid. Prøv igjen." };
-    return { ok: false, message: "Spott klarte ikke å skrive om innlegget. Prøv igjen." };
+    return { ok: false, message: "Spyd klarte ikke å skrive om innlegget. Prøv igjen." };
   }
 }

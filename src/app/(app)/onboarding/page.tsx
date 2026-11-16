@@ -20,7 +20,7 @@ export default function OnboardingPage({ searchParams }: { searchParams: SearchP
   return (
     <>
       <header className="flex flex-col gap-1">
-        <h1 className="text-3xl font-extrabold tracking-tight">Hvilken bedrift gjelder det?</h1>
+        <h1 className="font-serif text-4xl tracking-[-0.015em]">Hvilken bedrift gjelder det?</h1>
         <p className="text-ink-soft">Du kan endre navnet senere.</p>
       </header>
       <Suspense fallback={<Loading />}>

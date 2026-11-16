@@ -11,7 +11,7 @@ export default function StartPage() {
   return (
     <>
       <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Kom i gang</h1>
+        <h1 className="font-serif text-4xl tracking-[-0.015em] sm:text-5xl">Kom i gang</h1>
         <p className="max-w-2xl text-ink-soft">Fem korte spørsmål om bedriften. Svarene lagres i profilen, og du kan endre dem når som helst.</p>
       </header>
       <Suspense fallback={<Loading />}>

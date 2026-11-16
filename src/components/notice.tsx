@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 
 /** Kort melding over et skjema. Rollen gjør at skjermlesere leser den opp. */
 const STYLES = {
-  info: "border-line bg-mist",
+  info: "border-line bg-sand",
   success: "border-ok/40 bg-ok/10 text-ok",
-  error: "border-spot/50 bg-spot/10",
+  error: "border-terra-deep/40 bg-terra-deep/10 text-terra-deep",
 };
 
 export function Notice({ tone = "info", children }: { tone?: keyof typeof STYLES; children: ReactNode }) {
@@ -12,7 +12,7 @@ export function Notice({ tone = "info", children }: { tone?: keyof typeof STYLES
   return (
     <p
       role={tone === "error" ? "alert" : "status"}
-      className={`rounded-xl border px-3.5 py-3 text-sm font-medium ${style}`}
+      className={`rounded-lg border px-3.5 py-3 text-sm font-medium ${style}`}
     >
       {children}
     </p>

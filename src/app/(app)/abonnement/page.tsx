@@ -32,7 +32,7 @@ export default function SubscriptionPage({ searchParams }: { searchParams: Searc
   return (
     <>
       <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Abonnement</h1>
+        <h1 className="font-serif text-4xl tracking-[-0.015em] sm:text-5xl">Abonnement</h1>
         <p className="max-w-2xl text-ink-soft">Én pris, alt inkludert. Betaling og fakturaer håndteres trygt av Stripe.</p>
       </header>
       <Suspense fallback={<Loading />}>
@@ -70,35 +70,35 @@ async function SubscriptionContent({ searchParams }: { searchParams: SearchParam
   const active = hasAccess(account);
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-      <section className="flex flex-col gap-5 rounded-3xl border border-line p-6 sm:p-8" aria-labelledby="pris">
+      <section className="flex flex-col gap-5 rounded-xl border border-line p-6 sm:p-8" aria-labelledby="pris">
         <div>
-          <h2 id="pris" className="text-lg font-bold">Spott</h2>
+          <h2 id="pris" className="font-serif text-2xl">Spyd</h2>
           <p className="mt-2 flex flex-wrap items-baseline gap-x-2">
-            <span className="text-5xl font-black tracking-tight tabular-nums">{kroner(amount)}</span>
+            <span className="font-serif text-6xl tracking-[-0.02em] tabular-nums">{kroner(amount)}</span>
             <span className="text-ink-soft">per måned, eks. mva.</span>
           </p>
         </div>
         <ul className="flex flex-col gap-2">
           {INCLUDED.map((item) => (
             <li key={item} className="flex gap-3">
-              <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full bg-spot" />
+              <span aria-hidden="true" className="mt-3 h-px w-4 shrink-0 bg-terra" />
               <span>{item}</span>
             </li>
           ))}
         </ul>
         <Messages betaling={typeof betaling === "string" ? betaling : undefined} active={active} />
         {active ? <ActiveStatus account={account!} /> : (
-          <form action={startCheckout} className="flex flex-col gap-3">
+          <form action={startCheckout} className="flex flex-col items-start gap-3">
             <SubmitButton>Start abonnement</SubmitButton>
             <p className="text-sm text-ink-soft">
               Når du starter abonnementet, godtar du{" "}
-              <Link href="/vilkar" className="font-semibold text-ink underline underline-offset-2">vilkårene</Link>.
+              <Link href="/vilkar" className="font-semibold text-terra-deep underline underline-offset-2">vilkårene</Link>.
             </p>
           </form>
         )}
       </section>
-      <aside className="flex flex-col gap-3 rounded-3xl bg-mist p-6 text-sm leading-relaxed text-ink-soft">
-        <h2 className="text-base font-bold text-ink">Slik fungerer betalingen</h2>
+      <aside className="flex flex-col gap-3 rounded-xl bg-sand p-6 text-sm leading-relaxed text-ink-soft">
+        <h2 className="text-base font-semibold text-ink">Slik fungerer betalingen</h2>
         <p>Du betaler med kort på Stripes betalingsside. Legg inn organisasjonsnummeret, så kommer det på fakturaen.</p>
         <p>Abonnementet fornyes hver måned. Kvittering og faktura kommer på e-post.</p>
         <p>Kort, fakturaer og oppsigelse finner du under «Administrer abonnement».</p>
@@ -120,7 +120,7 @@ function Messages({ betaling, active }: { betaling?: string; active: boolean }) 
 
 function ActiveStatus({ account }: { account: BillingAccount }) {
   if (account.complimentary && !account.stripe_customer_id) {
-    return <Notice tone="success">Bedriften har gratis tilgang til Spott.</Notice>;
+    return <Notice tone="success">Bedriften har gratis tilgang til Spyd.</Notice>;
   }
   return (
     <div className="flex flex-col gap-4">

@@ -21,13 +21,13 @@ export default function ProfilePage() {
   return (
     <>
       <header className="flex flex-col gap-3">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Merkevareprofil</h1>
-        <p className="max-w-2xl text-ink-soft">Dette er det Spott skriver ut fra. Jo mer presist du fyller ut, jo bedre blir utkastene.</p>
+        <h1 className="font-serif text-4xl tracking-[-0.015em] sm:text-5xl">Merkevareprofil</h1>
+        <p className="max-w-2xl text-ink-soft">Dette er det Spyd skriver ut fra. Jo mer presist du fyller ut, jo bedre blir utkastene.</p>
         <nav aria-label="På denne siden" className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
           <ul className="flex gap-2">
             {SECTIONS.map(([href, label]) => (
               <li key={href} className="shrink-0">
-                <a href={href} className="block rounded-full border border-line px-3.5 py-1.5 text-sm font-semibold text-ink-soft hover:text-ink">{label}</a>
+                <a href={href} className="block rounded-lg border border-line px-3.5 py-1.5 text-sm font-semibold text-ink-soft hover:text-ink">{label}</a>
               </li>
             ))}
           </ul>

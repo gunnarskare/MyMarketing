@@ -72,7 +72,7 @@ function FontNameInput({ id, value, onCommit }: { id: string; value: string; onC
       }}
       onBlur={(e) => commit(e.target.value)}
       onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commit(e.currentTarget.value); } }}
-      className="w-full rounded-xl border border-line bg-paper px-3 py-2.5"
+      className="w-full rounded-lg border border-edge bg-white/60 px-3 py-2.5"
       autoComplete="off"
       spellCheck={false}
     />
@@ -134,7 +134,7 @@ export function TypographyEditor({ orgId }: { orgId: string }) {
         const { data } = await supabase.storage.from("brand-assets").createSignedUrl(asset.storage_path, 3600);
         try {
           if (!data?.signedUrl) throw new Error("ingen lenke");
-          const face = new FontFace("spott-" + asset.id, `url(${JSON.stringify(data.signedUrl)})`);
+          const face = new FontFace("spyd-" + asset.id, `url(${JSON.stringify(data.signedUrl)})`);
           document.fonts.add(await face.load());
           setUploadedReady((c) => ({ ...c, [asset.id]: true }));
         } catch {
@@ -170,7 +170,7 @@ export function TypographyEditor({ orgId }: { orgId: string }) {
   return (
     <section id="typografi" className="flex scroll-mt-24 flex-col gap-5 border-t border-line pt-8" aria-labelledby="typografi-tittel">
       <div>
-        <h2 id="typografi-tittel" className="text-2xl font-bold tracking-tight">Typografi</h2>
+        <h2 id="typografi-tittel" className="font-serif text-[1.75rem] leading-tight tracking-[-0.01em]">Typografi</h2>
         <p className="mt-2 max-w-2xl leading-relaxed text-ink-soft">
           Hvilke fonter innleggene og grafikken skal bruke. Skriv navnet på en font fra Google Fonts, eller velg en du har lastet opp.
         </p>
@@ -179,45 +179,45 @@ export function TypographyEditor({ orgId }: { orgId: string }) {
 
       <datalist id="google-fonter">{GOOGLE_FONT_SUGGESTIONS.map((font) => <option key={font} value={font} />)}</datalist>
 
-      <ul className="flex flex-col divide-y divide-line rounded-2xl border border-line">
+      <ul className="flex flex-col divide-y divide-line rounded-xl border border-line">
         {TYPOGRAPHY_ROLES.map((role) => {
           const item = settings[role.key];
           const asset = fonts.find((f) => f.id === item.assetId);
           const state = item.source === "google" ? googleState[item.family] ?? "loading" : asset ? (uploadedReady[asset.id] === false ? "missing" : "ok") : "missing";
-          const previewFamily = item.source === "google" ? `"${item.family}", ${item.fallback}` : asset ? `"spott-${asset.id}", ${item.fallback}` : "inherit";
+          const previewFamily = item.source === "google" ? `"${item.family}", ${item.fallback}` : asset ? `"spyd-${asset.id}", ${item.fallback}` : "inherit";
           const inputId = `font-${role.key}`;
           return (
             <li key={role.key} className="grid gap-4 p-4 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:p-5">
               <div className="flex flex-col gap-2">
                 <label htmlFor={inputId} className="font-semibold">{role.label}</label>
                 <p className="-mt-1 text-sm text-ink-soft">{role.description}</p>
-                <div className="flex gap-1 rounded-full bg-mist p-1 text-sm" role="group" aria-label={`Kilde for ${role.label.toLowerCase()}`}>
-                  <button type="button" aria-pressed={item.source === "google"} onClick={() => update(role.key, { source: "google", assetId: null, family: item.source === "google" ? item.family : DEFAULT_TYPOGRAPHY[role.key].family })} className={"flex-1 rounded-full px-3 py-1.5 font-semibold " + (item.source === "google" ? "bg-paper shadow-sm" : "text-ink-soft")}>Google</button>
-                  <button type="button" aria-pressed={item.source === "upload"} onClick={() => update(role.key, { source: "upload", assetId: fonts[0]?.id ?? null, family: fonts[0]?.original_name.replace(/\.[^.]+$/, "") ?? "" })} className={"flex-1 rounded-full px-3 py-1.5 font-semibold " + (item.source === "upload" ? "bg-paper shadow-sm" : "text-ink-soft")}>Egen font</button>
+                <div className="flex gap-1 rounded-lg bg-sand p-1 text-sm" role="group" aria-label={`Kilde for ${role.label.toLowerCase()}`}>
+                  <button type="button" aria-pressed={item.source === "google"} onClick={() => update(role.key, { source: "google", assetId: null, family: item.source === "google" ? item.family : DEFAULT_TYPOGRAPHY[role.key].family })} className={"flex-1 rounded-md px-3 py-1.5 font-semibold " + (item.source === "google" ? "bg-paper shadow-sm" : "text-ink-soft")}>Google</button>
+                  <button type="button" aria-pressed={item.source === "upload"} onClick={() => update(role.key, { source: "upload", assetId: fonts[0]?.id ?? null, family: fonts[0]?.original_name.replace(/\.[^.]+$/, "") ?? "" })} className={"flex-1 rounded-md px-3 py-1.5 font-semibold " + (item.source === "upload" ? "bg-paper shadow-sm" : "text-ink-soft")}>Egen font</button>
                 </div>
                 {item.source === "google" ? (
                   <FontNameInput id={inputId} value={item.family} onCommit={(family) => update(role.key, { family, fallback: fallbackFor(family) })} />
                 ) : fonts.length ? (
-                  <select id={inputId} value={item.assetId ?? ""} onChange={(e) => { const chosen = fonts.find((f) => f.id === e.target.value); update(role.key, { assetId: chosen?.id ?? null, family: chosen?.original_name.replace(/\.[^.]+$/, "") ?? "" }); }} className="w-full rounded-xl border border-line bg-paper px-3 py-2.5">
+                  <select id={inputId} value={item.assetId ?? ""} onChange={(e) => { const chosen = fonts.find((f) => f.id === e.target.value); update(role.key, { assetId: chosen?.id ?? null, family: chosen?.original_name.replace(/\.[^.]+$/, "") ?? "" }); }} className="w-full rounded-lg border border-edge bg-white/60 px-3 py-2.5">
                     {fonts.map((font) => <option key={font.id} value={font.id}>{font.original_name}</option>)}
                   </select>
                 ) : (
                   <p className="text-sm text-ink-soft">Ingen egne fonter ennå. Last opp under <a href="#bibliotek" className="font-semibold underline">Logoer, bilder og fonter</a>.</p>
                 )}
               </div>
-              <div className="flex min-w-0 flex-col justify-center gap-2 rounded-xl bg-mist px-4 py-4">
+              <div className="flex min-w-0 flex-col justify-center gap-2 rounded-xl bg-sand px-4 py-4">
                 <p style={{ fontFamily: previewFamily, fontWeight: role.key === "body" ? 400 : Math.max(...item.weights) }} className={"leading-snug break-words " + (role.key === "display" ? "text-4xl" : role.key === "heading" ? "text-2xl" : role.key === "button" ? "text-base" : "text-base")}>
                   {role.sample}
                 </p>
-                {state === "missing" && item.source === "google" ? <p className="text-sm font-semibold text-spot">Fant ikke «{item.family}» hos Google Fonts. Sjekk stavemåten.</p> : null}
+                {state === "missing" && item.source === "google" ? <p className="text-sm font-semibold text-terra-deep">Fant ikke «{item.family}» hos Google Fonts. Sjekk stavemåten.</p> : null}
                 {state === "offline" && item.source === "google" ? <p className="text-sm text-ink-soft">Fikk ikke hentet forhåndsvisningen fra Google Fonts. Du kan likevel lagre.</p> : null}
-                {item.source === "upload" && item.assetId && !asset ? <p className="text-sm font-semibold text-spot">Fonten er slettet fra biblioteket.</p> : null}
+                {item.source === "upload" && item.assetId && !asset ? <p className="text-sm font-semibold text-terra-deep">Fonten er slettet fra biblioteket.</p> : null}
                 <details className="text-sm">
                   <summary className="cursor-pointer text-ink-soft">Snitt: {item.weights.join(", ")}</summary>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {WEIGHTS.map((weight) => (
                       <label key={weight} className="flex items-center gap-1.5 rounded-lg border border-line bg-paper px-2 py-1">
-                        <input type="checkbox" className="accent-spot" checked={item.weights.includes(weight)} onChange={(e) => update(role.key, { weights: e.target.checked ? [...item.weights, weight].sort((a, b) => a - b) : item.weights.filter((w) => w !== weight) })} />
+                        <input type="checkbox" className="accent-terra-deep" checked={item.weights.includes(weight)} onChange={(e) => update(role.key, { weights: e.target.checked ? [...item.weights, weight].sort((a, b) => a - b) : item.weights.filter((w) => w !== weight) })} />
                         {weight}
                       </label>
                     ))}
@@ -231,10 +231,10 @@ export function TypographyEditor({ orgId }: { orgId: string }) {
 
       {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" onClick={() => void save()} disabled={saving || (saved && !dirty)} className="rounded-full bg-ink px-6 py-3 font-semibold text-paper disabled:opacity-50">
+        <button type="button" onClick={() => void save()} disabled={saving || (saved && !dirty)} className="rounded-lg bg-terra-deep px-6 py-3 font-semibold text-paper hover:bg-terra-deeper disabled:opacity-50">
           {saving ? "Lagrer …" : saved && !dirty ? "Lagret" : "Lagre typografien"}
         </button>
-        <button type="button" onClick={() => { setSettings(DEFAULT_TYPOGRAPHY); setDirty(true); setMessage({ tone: "info", text: "Tilbakestilt til standard. Lagre for å bruke det." }); }} className="text-sm font-semibold underline underline-offset-4">
+        <button type="button" onClick={() => { setSettings(DEFAULT_TYPOGRAPHY); setDirty(true); setMessage({ tone: "info", text: "Tilbakestilt til standard. Lagre for å bruke det." }); }} className="text-sm font-semibold text-terra-deep underline underline-offset-4">
           Tilbakestill
         </button>
       </div>

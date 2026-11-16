@@ -68,7 +68,7 @@ export function ProfileForm({ profile }: { profile: BrandProfile | null }) {
           id="language"
           name="language"
           defaultValue={profile?.language ?? "nb"}
-          className="w-full rounded-xl border border-line bg-paper px-3.5 py-3 text-base text-ink"
+          className="w-full rounded-lg border border-edge bg-white/60 px-3.5 py-3 text-base text-ink"
         >
           {LANGUAGES.map((language) => (
             <option key={language.value} value={language.value}>

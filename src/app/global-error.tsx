@@ -5,15 +5,15 @@
 export default function GlobalError({ retry }: { error: unknown; retry: () => void }) {
   return (
     <html lang="nb">
-      <body style={{ margin: 0, fontFamily: "system-ui, sans-serif", color: "#101b3b", background: "#fff" }}>
+      <body style={{ margin: 0, fontFamily: "Arial, Helvetica, sans-serif", color: "#2b211d", background: "#fff3e3" }}>
         <main style={{ maxWidth: "28rem", margin: "0 auto", padding: "4rem 1.5rem" }} role="alert">
-          <title>Noe gikk galt · Spott</title>
-          <h1 style={{ fontSize: "1.875rem", fontWeight: 800, margin: "0 0 1rem" }}>Spott kunne ikke vises</h1>
-          <p style={{ color: "#4a5672", margin: "0 0 1.5rem", lineHeight: 1.6 }}>Noe gikk galt hos oss. Prøv igjen om litt.</p>
+          <title>Noe gikk galt · Spyd</title>
+          <h1 style={{ fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "2.25rem", fontWeight: 400, margin: "0 0 1rem" }}>Spyd kunne ikke vises</h1>
+          <p style={{ color: "#62514a", margin: "0 0 1.5rem", lineHeight: 1.6 }}>Noe gikk galt hos oss. Prøv igjen om litt.</p>
           <button
             type="button"
             onClick={() => retry()}
-            style={{ border: 0, borderRadius: "999px", background: "#101b3b", color: "#fff", padding: "0.75rem 1.25rem", fontSize: "1rem", fontWeight: 600, cursor: "pointer" }}
+            style={{ border: 0, borderRadius: "0.5rem", background: "#963f30", color: "#fff3e3", padding: "0.75rem 1.25rem", fontSize: "1rem", fontWeight: 600, cursor: "pointer" }}
           >
             Prøv igjen
           </button>

@@ -125,7 +125,7 @@ export async function safeFetch(raw: string, options: SafeFetchOptions): Promise
         redirect: "manual",
         signal: AbortSignal.timeout(options.timeoutMs ?? 8_000),
         headers: {
-          "User-Agent": "SpottBot/1.0 (+https://www.spott.no)",
+          "User-Agent": "SpydBot/1.0 (+https://spyd.no)",
           Accept: options.accept ?? options.types.join(","),
         },
       });

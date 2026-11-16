@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CheckIcon } from "@/components/icons";
+import { button } from "@/components/ui";
 import { Suspense } from "react";
 import { Loading } from "@/components/loading";
 import { Notice } from "@/components/notice";
@@ -53,11 +55,11 @@ async function DashboardContent() {
   const images = assets.filter((a) => a.kind === "image").length;
 
   const analysisStep: Step = !analysis || analysis.status === "not_created"
-    ? { title: "Lag merkevareanalysen", detail: profile?.website_url ? "Spott leser nettsiden og beskriver merkevaren." : "Krever at nettsiden er lagt inn i profilen.", done: false, href: "/merkevare", action: "Lag analysen" }
+    ? { title: "Lag merkevareanalysen", detail: profile?.website_url ? "Spyd leser nettsiden og beskriver merkevaren." : "Krever at nettsiden er lagt inn i profilen.", done: false, href: "/merkevare", action: "Lag analysen" }
     : analysis.stale
       ? { title: "Oppdater merkevareanalysen", detail: "Profilen er endret etter at analysen ble laget.", done: false, href: "/merkevare", action: "Se analysen" }
       : analysis.status === "approved"
-        ? { title: "Merkevareanalysen er godkjent", detail: "Spott bruker den når innhold lages.", done: true, href: "/merkevare" }
+        ? { title: "Merkevareanalysen er godkjent", detail: "Spyd bruker den når innhold lages.", done: true, href: "/merkevare" }
         : { title: "Gå gjennom merkevareanalysen", detail: "Rett det som ikke stemmer, og godkjenn.", done: false, href: "/merkevare", action: "Gå gjennom" };
 
   const steps: Step[] = [
@@ -71,7 +73,7 @@ async function DashboardContent() {
         ? { title: "Velg hovedlogo", detail: `${logos.length} ${logos.length === 1 ? "logo" : "logoer"} lastet opp, men ingen er valgt som hovedlogo.`, done: false, href: "/profil#bibliotek", action: "Velg" }
         : { title: "Last opp logoen", detail: "Eller hent den fra nettsiden.", done: false, href: "/profil#hent-fra-nettside", action: "Last opp" },
     images >= 3
-      ? { title: `${images} bilder i biblioteket`, detail: "Spott velger blant dem til innleggene.", done: true, href: "/profil#bibliotek" }
+      ? { title: `${images} bilder i biblioteket`, detail: "Spyd velger blant dem til innleggene.", done: true, href: "/profil#bibliotek" }
       : { title: "Legg inn noen bilder", detail: images ? `${images} av minst 3 bilder.` : "Bilder fra bedriften gjør innleggene bedre.", done: false, href: "/profil#bibliotek", action: "Legg inn" },
     typographyResult.data
       ? { title: "Typografien er valgt", detail: "Fontene som brukes i grafikk.", done: true, href: "/profil#typografi" }
@@ -85,26 +87,26 @@ async function DashboardContent() {
   return (
     <>
       <header className="flex flex-col gap-2">
-        <h1 className="text-4xl font-extrabold tracking-tight text-balance sm:text-5xl">
-          Hei, {org.name}<span aria-hidden="true" className="ml-[0.05em] inline-block size-[0.2em] rounded-full bg-spot" />
+        <h1 className="font-serif text-4xl tracking-[-0.015em] text-balance sm:text-5xl">
+          Hei, {org.name}
         </h1>
         <p className="max-w-xl text-lg text-ink-soft">
-          {done === steps.length ? <>Alt er klart. <Link href="/uke" className="font-semibold text-ink underline underline-offset-4">Lag ukas utkast</Link>.</> : `${done} av ${steps.length} steg er gjort før Spott kan lage ukas innlegg.`}
+          {done === steps.length ? <>Alt er klart. <Link href="/uke" className="font-semibold text-terra-deep underline underline-offset-4">Lag ukas utkast</Link>.</> : `${done} av ${steps.length} steg er gjort før Spyd kan lage ukas innlegg.`}
         </p>
       </header>
 
       {failed ? <Notice tone="error">Noe av oversikten kunne ikke hentes. Last siden på nytt.</Notice> : null}
 
       <section aria-labelledby="neste-steg" className="flex flex-col gap-4">
-        <h2 id="neste-steg" className="text-2xl font-bold tracking-tight">Gjør Spott klar</h2>
-        <div className="h-2 overflow-hidden rounded-full bg-mist" role="progressbar" aria-valuemin={0} aria-valuemax={steps.length} aria-valuenow={done} aria-label="Fremdrift">
-          <div className="h-full rounded-full bg-spot" style={{ width: `${(done / steps.length) * 100}%` }} />
+        <h2 id="neste-steg" className="font-serif text-[1.75rem] leading-tight tracking-[-0.01em]">Gjør Spyd klar</h2>
+        <div className="h-2 overflow-hidden rounded-full bg-sand" role="progressbar" aria-valuemin={0} aria-valuemax={steps.length} aria-valuenow={done} aria-label="Fremdrift">
+          <div className="h-full rounded-full bg-terra" style={{ width: `${(done / steps.length) * 100}%` }} />
         </div>
-        <ol className="divide-y divide-line rounded-2xl border border-line">
+        <ol className="divide-y divide-line rounded-xl border border-line">
           {steps.map((step) => (
             <li key={step.title} className="flex items-center gap-4 p-4 sm:p-5">
-              <span aria-hidden="true" className={"flex size-6 shrink-0 items-center justify-center rounded-full " + (step.done ? "bg-spot" : "border-2 border-ink-muted")}>
-                {step.done ? <span className="size-2 rounded-full bg-paper" /> : null}
+              <span aria-hidden="true" className={"flex size-6 shrink-0 items-center justify-center rounded-full " + (step.done ? "bg-terra text-white" : "border-2 border-edge")}>
+                {step.done ? <CheckIcon className="size-4" /> : null}
               </span>
               <div className="min-w-0 flex-1">
                 <p className={"font-semibold " + (step.done ? "text-ink-soft" : "")}>
@@ -113,14 +115,14 @@ async function DashboardContent() {
                 <p className="text-sm text-ink-soft">{step.detail}</p>
               </div>
               {step.href && step.action ? (
-                <Link href={step.href} className="shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper">{step.action}</Link>
+                <Link href={step.href} className={`${button.primarySmall} shrink-0`}>{step.action}</Link>
               ) : step.href ? (
-                <Link href={step.href} className="shrink-0 text-sm font-semibold underline underline-offset-4">Se</Link>
+                <Link href={step.href} className="shrink-0 text-sm font-semibold text-terra-deep underline underline-offset-4">Se</Link>
               ) : null}
             </li>
           ))}
           <li className="flex items-center gap-4 p-4 sm:p-5">
-            <span aria-hidden="true" className="size-6 shrink-0 rounded-full border-2 border-dashed border-ink-muted" />
+            <span aria-hidden="true" className="size-6 shrink-0 rounded-full border-2 border-dashed border-edge" />
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-ink-soft">Koble til Facebook, Instagram og LinkedIn</p>
               <p className="text-sm text-ink-soft">Kommer. Til da kan du kopiere innleggene og publisere selv.</p>
@@ -128,26 +130,26 @@ async function DashboardContent() {
           </li>
         </ol>
         <p className="text-sm text-ink-soft">
-          Vil du heller svare på noen spørsmål? <Link href="/kom-i-gang" className="font-semibold underline underline-offset-4">Bruk veiviseren</Link>.
+          Vil du heller svare på noen spørsmål? <Link href="/kom-i-gang" className="font-semibold text-terra-deep underline underline-offset-4">Bruk veiviseren</Link>.
         </p>
       </section>
 
       <section aria-labelledby="innlegg" className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="flex min-w-0 flex-col gap-4">
           <div className="flex items-baseline justify-between gap-3">
-            <h2 id="innlegg" className="text-2xl font-bold tracking-tight">Innlegg</h2>
-            <Link href="/uke" className="text-sm font-semibold underline underline-offset-4">Åpne ukeplanen</Link>
+            <h2 id="innlegg" className="font-serif text-[1.75rem] leading-tight tracking-[-0.01em]">Innlegg</h2>
+            <Link href="/uke" className="text-sm font-semibold text-terra-deep underline underline-offset-4">Åpne innholdsplanen</Link>
           </div>
           <dl className="grid grid-cols-3 gap-3">
             {(["draft", "approved", "published"] as const).map((status) => (
-              <div key={status} className="rounded-2xl border border-line p-4">
+              <div key={status} className="rounded-xl border border-line p-4">
                 <dt className="text-sm text-ink-soft">{POST_STATUS[status]}</dt>
-                <dd className="mt-1 text-3xl font-extrabold tabular-nums">{counts[status] ?? 0}</dd>
+                <dd className="mt-1 font-serif text-4xl tabular-nums">{counts[status] ?? 0}</dd>
               </div>
             ))}
           </dl>
           {posts.length ? (
-            <ul className="divide-y divide-line rounded-2xl border border-line">
+            <ul className="divide-y divide-line rounded-xl border border-line">
               {posts.map((post) => (
                 <li key={post.id} className="flex items-center justify-between gap-3 p-4">
                   <div className="min-w-0">
@@ -156,30 +158,30 @@ async function DashboardContent() {
                       {post.scheduled_at ? `Planlagt ${formatDate(post.scheduled_at)}` : `Laget ${formatDate(post.created_at)}`}
                     </p>
                   </div>
-                  <span className={"shrink-0 rounded-full px-3 py-1 text-xs font-semibold " + (post.status === "failed" ? "bg-spot/10 text-spot" : "bg-mist")}>{POST_STATUS[post.status]}</span>
+                  <span className={"shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold " + (post.status === "failed" ? "bg-terra-deep/10 text-terra-deep" : "bg-sand")}>{POST_STATUS[post.status]}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="rounded-2xl bg-mist p-5 text-ink-soft">Ingen innlegg ennå. <Link href="/uke" className="font-semibold text-ink underline underline-offset-4">Lag ukas utkast</Link> når profilen og analysen er klare.</p>
+            <p className="rounded-xl bg-sand p-5 text-ink-soft">Ingen innlegg ennå. <Link href="/uke" className="font-semibold text-terra-deep underline underline-offset-4">Lag ukas utkast</Link> når profilen og analysen er klare.</p>
           )}
         </div>
         <div className="flex min-w-0 flex-col gap-4">
-          <h2 className="text-2xl font-bold tracking-tight">Kanaler</h2>
+          <h2 className="font-serif text-[1.75rem] leading-tight tracking-[-0.01em]">Kanaler</h2>
           {accounts.length ? (
-            <ul className="divide-y divide-line rounded-2xl border border-line">
+            <ul className="divide-y divide-line rounded-xl border border-line">
               {accounts.map((account) => {
                 const status = ACCOUNT_STATUS[account.status] ?? { label: account.status, ok: false };
                 return (
                   <li key={account.id} className="flex items-center justify-between gap-3 p-4">
                     <span className="font-semibold capitalize">{account.platform}</span>
-                    <span className={"text-sm font-semibold " + (status.ok ? "text-ok" : "text-spot")}>{status.label}</span>
+                    <span className={"text-sm font-semibold " + (status.ok ? "text-ok" : "text-terra-deep")}>{status.label}</span>
                   </li>
                 );
               })}
             </ul>
           ) : (
-            <p className="rounded-2xl bg-mist p-5 text-ink-soft">Ingen kanaler er koblet til. Tilkobling til Facebook, Instagram og LinkedIn kommer.</p>
+            <p className="rounded-xl bg-sand p-5 text-ink-soft">Ingen kanaler er koblet til. Tilkobling til Facebook, Instagram og LinkedIn kommer.</p>
           )}
         </div>
       </section>

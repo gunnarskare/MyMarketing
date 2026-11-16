@@ -11,14 +11,14 @@ const tools = [
   {
     name: "get_brand_profile",
     title: "Hent merkevareprofil",
-    description: "Henter merkevareprofilen til den tilkoblede Spott-bedriften.",
+    description: "Henter merkevareprofilen til den tilkoblede Spyd-bedriften.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
   },
   {
     name: "update_brand_profile",
     title: "Oppdater merkevareprofil",
-    description: "Oppdaterer ett eller flere felt i Spott. Bare felter som sendes inn blir endret.",
+    description: "Oppdaterer ett eller flere felt i Spyd. Bare felter som sendes inn blir endret.",
     inputSchema: {
       type: "object",
       properties: {
@@ -36,14 +36,14 @@ const tools = [
   {
     name: "list_brand_assets",
     title: "List merkevareressurser",
-    description: "Lister logoer, bilder og fonter som er lagret i Spott.",
+    description: "Lister logoer, bilder og fonter som er lagret i Spyd.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
   },
   {
     name: "upload_brand_asset",
     title: "Last opp merkevareressurs",
-    description: "Laster opp en logo, et bilde eller en font til den tilkoblede Spott-bedriftens private bibliotek. Krever eksplisitt brukerforespørsel.",
+    description: "Laster opp en logo, et bilde eller en font til den tilkoblede Spyd-bedriftens private bibliotek. Krever eksplisitt brukerforespørsel.",
     inputSchema: {
       type: "object",
       required: ["file_name", "mime_type", "base64_data", "kind"],
@@ -76,14 +76,14 @@ async function getContext(request: NextRequest) {
   const authorization = request.headers.get("authorization") ?? "";
   const token = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token) return { error: "Missing bearer access token." } as const;
-  if (!supabaseUrl || !supabaseKey) return { error: "Spott is not configured." } as const;
+  if (!supabaseUrl || !supabaseKey) return { error: "Spyd is not configured." } as const;
 
   const supabase = createSupabaseClient(supabaseUrl, supabaseKey, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
   const { data: userData, error: userError } = await supabase.auth.getUser(token);
-  if (userError || !userData.user) return { error: "Invalid or expired Spott access token." } as const;
+  if (userError || !userData.user) return { error: "Invalid or expired Spyd access token." } as const;
 
   const { data: org, error: orgError } = await supabase
     .from("organizations")
@@ -91,7 +91,7 @@ async function getContext(request: NextRequest) {
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
-  if (orgError || !org) return { error: "No Spott organization is connected to this account." } as const;
+  if (orgError || !org) return { error: "No Spyd organization is connected to this account." } as const;
   return { supabase, user: userData.user, org } as const;
 }
 
@@ -182,7 +182,7 @@ async function runTool(name: string, args: Record<string, unknown>, context: Awa
 
 export async function GET() {
   return NextResponse.json({
-    name: "Spott MCP",
+    name: "Spyd MCP",
     version: "0.1.0",
     protocol: PROTOCOL_VERSION,
     tools: tools.map(({ name, title, description }) => ({ name, title, description })),
@@ -206,8 +206,8 @@ export async function POST(request: NextRequest) {
     return jsonRpc(id, {
       protocolVersion: PROTOCOL_VERSION,
       capabilities: { tools: {} },
-      serverInfo: { name: "spott", version: "0.1.0" },
-      instructions: "Spott lets you read and update a company's brand profile and manage its private brand assets. Always confirm with the user before uploading or changing brand data.",
+      serverInfo: { name: "spyd", version: "0.1.0" },
+      instructions: "Spyd lets you read and update a company's brand profile and manage its private brand assets. Always confirm with the user before uploading or changing brand data.",
     });
   }
   if (method === "ping") return jsonRpc(id, {});

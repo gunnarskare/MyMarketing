@@ -1,7 +1,7 @@
-# Spott
+# Spyd
 
-Spott (repoet heter fortsatt MyMarketing) er en AI-markedsføringstjeneste fra S&S Marketing AS: en bedrift legger inn nettsiden sin, får en ukeplan med ferdige
-utkast, godkjenner dem, og innleggene publiseres til Facebook, Instagram og LinkedIn.
+Spyd (tidligere Spott; repoet heter fortsatt MyMarketing) er en AI-markedsføringstjeneste fra S&S Marketing AS: en bedrift legger inn
+nettsiden sin, får en innholdsplan med ferdige utkast, godkjenner dem, og innleggene publiseres til Facebook, Instagram og LinkedIn.
 
 Plan, arkitektur og datamodell: https://claude.ai/artifact/2iY1ry2gfMp9kPmUSgPtt3
 
@@ -27,9 +27,9 @@ Uten Supabase-verdiene starter appen likevel, men innlogging er slått av.
 | --- | --- |
 | `src/proxy.ts` | Fornyer innloggingsøkten og sender uinnloggede til `/login` |
 | `src/lib/auth.ts` | `requireUser` og `requireOrg`, brukt øverst i alt som krever innlogging |
-| `src/app/page.tsx` | Forsiden |
+| `src/app/page.tsx` | Forsiden. De fire stegene ligger i `src/components/journey.tsx` |
 | `src/app/personvern` | Personvernerklæringen |
-| `src/app/vilkar` | Vilkårene for å bruke Spott. Godtas når kontoen opprettes og abonnementet startes |
+| `src/app/vilkar` | Vilkårene for å bruke Spyd. Godtas når kontoen opprettes og abonnementet startes |
 | `src/app/sletting` | Slik ber man om sletting, og fjerner tilgangen hos Meta og LinkedIn. Lenken Meta krever |
 | `src/lib/company.ts` | Selskapsopplysninger som vises i bunnteksten, personvernerklæringen og vilkårene |
 | `src/app/login` | Innlogging og registrering med e-post og passord |
@@ -37,9 +37,9 @@ Uten Supabase-verdiene starter appen likevel, men innlogging er slått av.
 | `src/app/(app)/onboarding` | Oppretter bedriften ved første innlogging |
 | `src/app/(app)/dashboard` | Oversikten, med sjekkliste over hva som gjenstår |
 | `src/app/(app)/kom-i-gang` | Veiviser med fem spørsmål som fyller ut profilen |
-| `src/app/(app)/profil` | Profilen, import fra nettside, logoer/bilder/fonter og typografi |
-| `src/app/(app)/merkevare` | Merkevareanalysen: lese, rette og godkjenne |
-| `src/app/(app)/uke` | Ukeplanen: lage ukas utkast, rette, godkjenne, kopiere og merke som publisert |
+| `src/app/(app)/profil` | Merkevareprofilen: import fra nettside, logoer/bilder/fonter og typografi |
+| `src/app/(app)/merkevare` | Strategi: merkevareanalysen, som du leser, retter og godkjenner |
+| `src/app/(app)/uke` | Innholdsplanen: uka som dagrader og valgt innlegg ved siden av. Lage utkast, rette, godkjenne, kopiere og merke som publisert |
 | `src/app/api/weekly-plan` | Lager ukas utkast (POST) ut fra profil, analyse og bildebibliotek |
 | `src/app/api/brand-analysis` | Lager (POST), henter (GET) og lagrer (PATCH) merkevareanalysen |
 | `src/app/api/brand-intelligence` | Leser en nettside og importerer bilder til biblioteket |
@@ -51,9 +51,30 @@ Uten Supabase-verdiene starter appen likevel, men innlogging er slått av.
 | `src/lib/ai` | OpenAI-agentene, analyseskjemaet, ukeplan-agenten og kvotene |
 | `src/lib/week.ts` | Uker, datoer i norsk tid og rydding av AI-utkast (testet i `tests/unit/week.test.mjs`) |
 | `src/lib/publishing` | Felles grensesnitt for Facebook, Instagram og LinkedIn |
+| `src/components/wordmark.tsx` | Spyd-logoen og spydspissen som SVG |
+| `src/components/ui.ts` | Felles stiler for knapper og lenker |
+| `src/components/icons.tsx` | Strekikonene |
+| `src/images` | Bildene på forsiden |
 
 Sider som leser innloggingen har en statisk ramme og henter resten bak `<Suspense>`.
 Det er slik Cache Components krever det.
+
+## Merkevare og design
+
+Alt følger merkevareprofilen for Spyd (versjon 1.0, november 2026).
+
+- **Farger** står som variabler i `src/app/globals.css`: krem (`paper`), blekk (`ink`), terrakotta (`terra`),
+  dyp terrakotta (`terra-deep`), sand og leire (`clay`). Liten tekst skal aldri stå i lys terrakotta på krem (4,34:1).
+  Bruk dyp terrakotta (6,29:1), eller hvit tekst på lys terrakotta (4,75:1). Knapper og lenker er dyp terrakotta.
+- **Skrift:** Liberation Serif Regular i overskrifter og Open Sans i brødtekst og grensesnitt, lagret i `src/app/fonts`.
+  Serif-fonten er et latinsk utsnitt med det interne navnet «Spyd Serif», fordi lisensen (OFL) reserverer navnet
+  Liberation for originalen. Se `src/app/fonts/LICENSE.txt`.
+- **Logo:** ordmerket og spydspissen er hentet som vektor fra merkevareprofilen. Bruk alltid `Wordmark`,
+  aldri navnet satt med en font, og hold den minst 120 px bred (44 px høy). Faviconet er spydspissen på terrakotta.
+- **Bilder:** fotoet av markedsføreren og kunden er fra merkevareprofilen (side 09). Hytta og miniatyrene er
+  klippet fra designskissene og er bare 619 px brede. Har dere originalfilene, bytt filene i `src/images` med samme navn.
+- **Fjordbygg** på forsiden er en tenkt bedrift. Kortene er merket «Eksempel».
+- Ser du gamle farger i `npm run dev`, slett `.next` og start på nytt. Turbopack kan gjenbruke et gammelt stilark.
 
 ## Database
 
@@ -89,7 +110,8 @@ med service-nøkkelen (`record_ai_usage`), så brukerne kan lese radene til egen
 
 ## Betaling (Stripe)
 
-- Produktet «Spott» har én månedspris med oppslagsnøkkelen `spott_monthly_nok` (2 990 kr eks. mva.).
+- Produktet har én månedspris med oppslagsnøkkelen `spott_monthly_nok` (2 990 kr eks. mva.). Nøkkelen er fra før navnebyttet
+  og vises ikke for kundene. Produktnavnet i Stripe er det kundene ser i betalingen og på fakturaen.
   Koden finner prisen med nøkkelen, så den samme koden virker i test og live.
 - `/abonnement` starter Stripe Checkout og åpner kundeportalen (kort, fakturaer, oppsigelse ved periodens slutt).
 - `/api/stripe/webhook` speiler abonnementet til `billing_accounts`. Den er åpen i proxyen og sjekker Stripe-signaturen.
@@ -150,6 +172,7 @@ Funksjonene kjører i Stockholm (`arn1`), samme område som databasen.
 
 - [x] Fase 0: prosjekt, datamodell, adapter-grensesnitt
 - [x] Fase 1: innlogging, bedrift, profil, bibliotek, typografi, AI-merkevareanalyse, abonnement og ukas utkast
+- [x] Nytt navn og ny merkevare: Spyd
 - [ ] Fase 2: Facebook-side og LinkedIn
 - [ ] Fase 3: godkjenning, kø og jobbkjører
 - [ ] Fase 4: Instagram og bilder

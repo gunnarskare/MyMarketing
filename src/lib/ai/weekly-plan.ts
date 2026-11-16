@@ -31,7 +31,7 @@ const LANGUAGE: Record<string, string> = { nb: "norsk bokmål", nn: "norsk nynor
 const MODEL = () => process.env.OPENAI_DEFAULT_MODEL || "gpt-5.6-luna";
 
 const RULES = [
-  "Du er Spott, en erfaren norsk tekstforfatter for sosiale medier som skriver for små bedrifter.",
+  "Du er Spyd, en erfaren norsk tekstforfatter for sosiale medier som skriver for små bedrifter.",
   "Følg merkevareanalysen: tone, målgrupper, budskapspilarer, ord som brukes og ord som unngås.",
   "Ikke finn på fakta: ingen priser, tilbud, åpningstider, datoer, kundenavn eller resultater som ikke står i profilen eller analysen.",
   "Nevn bare høytider og merkedager du er helt sikker på faller i den aktuelle uka.",
@@ -69,7 +69,7 @@ export async function generateWeeklyDrafts(
   week: { days: { day: Day; date: string }[]; platforms: Platform[]; count: number; weekNumber: number },
   aiRunId: string | null,
 ): Promise<DraftPost[]> {
-  const agent = new Agent({ name: "Spott Weekly Planner", model: MODEL(), outputType: planSchema, instructions: RULES });
+  const agent = new Agent({ name: "Spyd Weekly Planner", model: MODEL(), outputType: planSchema, instructions: RULES });
   const result = await runAndRecordUsage(aiRunId, agent, [
     contextText(ctx),
     `OPPGAVE: Lag ${week.count} innlegg for uke ${week.weekNumber}.`,
@@ -86,7 +86,7 @@ export async function rewriteDraft(
   instruction: string,
   aiRunId: string | null,
 ): Promise<DraftPost> {
-  const agent = new Agent({ name: "Spott Post Rewriter", model: MODEL(), outputType: singleSchema, instructions: RULES });
+  const agent = new Agent({ name: "Spyd Post Rewriter", model: MODEL(), outputType: singleSchema, instructions: RULES });
   const result = await runAndRecordUsage(aiRunId, agent, [
     contextText(ctx),
     `OPPGAVE: Skriv om dette innlegget. Behold dag (${current.day}), kanal (${current.platform}) og klokkeslett (${current.time}) med mindre ønsket sier noe annet.`,

@@ -6,7 +6,7 @@ import { company } from "@/lib/company";
 
 export const metadata: Metadata = {
   title: "Vilkår",
-  description: `Vilkårene for å bruke Spott, en tjeneste fra ${company.legalName}.`,
+  description: `Vilkårene for å bruke Spyd, en tjeneste fra ${company.legalName}.`,
 };
 
 export default function TermsPage() {
@@ -15,12 +15,12 @@ export default function TermsPage() {
       <SiteHeader />
       <main className="flex-1">
         <article className="mx-auto w-full max-w-6xl px-6 pt-10 pb-24">
-          <h1 className="text-[clamp(2.25rem,9vw,4rem)] leading-none font-black tracking-[-0.03em]">Vilkår</h1>
+          <h1 className="font-serif text-[clamp(2.5rem,8vw,4rem)] leading-[1.05] tracking-[-0.015em]">Vilkår</h1>
           <p className="mt-4 text-ink-soft">Sist oppdatert 16. november 2026</p>
 
           <div className="legal mt-10">
             <p>
-              Disse vilkårene er avtalen mellom bedriften som bruker Spott, og {company.legalName}{" "}
+              Disse vilkårene er avtalen mellom bedriften som bruker Spyd, og {company.legalName}{" "}
               (org.nr.{" "}{company.orgNumber}), som leverer tjenesten. «Du» betyr bedriften og alle som
               bruker kontoen på vegne av den. «Vi» betyr {company.legalName}.
             </p>
@@ -29,20 +29,20 @@ export default function TermsPage() {
               lov til å inngå avtalen på vegne av bedriften.
             </p>
 
-            <h2>Hvem Spott er for</h2>
+            <h2>Hvem Spyd er for</h2>
             <p>
-              Spott er for næringsdrivende. Tjenesten er ikke laget for forbrukere, og reglene om angrerett for
+              Spyd er for næringsdrivende. Tjenesten er ikke laget for forbrukere, og reglene om angrerett for
               forbrukere gjelder derfor ikke. Du må være minst 18 år for å opprette en konto.
             </p>
 
-            <h2>Hva Spott gjør</h2>
+            <h2>Hva Spyd gjør</h2>
             <p>
-              Spott leser de offentlige sidene på nettsiden du oppgir, og lager en merkevareprofil og en
-              merkevareanalyse. Ut fra dem lager Spott forslag til innlegg i sosiale medier. Analysen og
+              Spyd leser de offentlige sidene på nettsiden du oppgir, og lager en merkevareprofil og en
+              merkevareanalyse. Ut fra dem lager Spyd forslag til innlegg i sosiale medier. Analysen og
               forslagene lages med kunstig intelligens.
             </p>
             <p>
-              Spott er under utvikling. Vi kan legge til, endre og fjerne funksjoner. Gjør en endring tjenesten
+              Spyd er under utvikling. Vi kan legge til, endre og fjerne funksjoner. Gjør en endring tjenesten
               vesentlig dårligere for deg, sier vi fra på e-post før den gjelder, og du kan si opp abonnementet
               før det fornyes.
             </p>
@@ -66,7 +66,7 @@ export default function TermsPage() {
                 hver måned til du sier det opp.
               </li>
               <li>
-                Det er ingen bindingstid. Du sier opp under Abonnement i Spott. Du beholder tilgangen ut perioden
+                Det er ingen bindingstid. Du sier opp under Abonnement i Spyd. Du beholder tilgangen ut perioden
                 du har betalt for. Vi betaler ikke tilbake for en påbegynt periode.
               </li>
               <li>
@@ -82,12 +82,12 @@ export default function TermsPage() {
             <h2>Innholdet ditt</h2>
             <ul>
               <li>
-                Bedriften eier det dere legger inn i Spott: tekster, logoer, bilder og fonter. Innleggene Spott
+                Bedriften eier det dere legger inn i Spyd: tekster, logoer, bilder og fonter. Innleggene Spyd
                 lager for dere, kan dere bruke fritt. Vi gjør ikke krav på rettigheter til dem.
               </li>
               <li>
                 Du gir oss rett til å lagre og behandle innholdet, og sende det til leverandørene våre, så langt
-                det trengs for å levere Spott. Vi bruker det ikke til noe annet, og vi bruker det ikke i vår egen
+                det trengs for å levere Spyd. Vi bruker det ikke til noe annet, og vi bruker det ikke i vår egen
                 markedsføring uten at du har sagt ja.
               </li>
               <li>
@@ -104,7 +104,7 @@ export default function TermsPage() {
             </p>
             <ul>
               <li>
-                Du må lese og godkjenne hvert innlegg før det publiseres. Spott publiserer ingenting du ikke har
+                Du må lese og godkjenne hvert innlegg før det publiseres. Spyd publiserer ingenting du ikke har
                 godkjent.
               </li>
               <li>
@@ -116,13 +116,13 @@ export default function TermsPage() {
 
             <h2>Tilkobling til sosiale medier</h2>
             <p>
-              Kobler du en konto på Facebook, Instagram eller LinkedIn til Spott, gir du oss lov til å publisere
+              Kobler du en konto på Facebook, Instagram eller LinkedIn til Spyd, gir du oss lov til å publisere
               innleggene du har godkjent, på kontoene du har valgt og til tidene du har valgt. Du gir oss også lov
               til å hente tall for innleggene, som visninger og reaksjoner.
             </p>
             <ul>
               <li>
-                Tilgangen lagres kryptert og brukes bare til dette. Du kan koble fra når som helst, i Spott eller
+                Tilgangen lagres kryptert og brukes bare til dette. Du kan koble fra når som helst, i Spyd eller
                 hos plattformen.
               </li>
               <li>
@@ -131,7 +131,7 @@ export default function TermsPage() {
               </li>
             </ul>
 
-            <h2>Dette kan du ikke bruke Spott til</h2>
+            <h2>Dette kan du ikke bruke Spyd til</h2>
             <ul>
               <li>Innhold som er ulovlig, villedende, hatefullt eller trakasserende.</li>
               <li>Innhold som krenker andres rettigheter, som opphavsrett, varemerker eller personvern.</li>
@@ -149,8 +149,8 @@ export default function TermsPage() {
 
             <h2>Drift og tilgjengelighet</h2>
             <p>
-              Vi gjør vårt beste for at Spott skal være tilgjengelig og virke som det skal. Vi kan likevel ikke
-              love at tjenesten alltid er tilgjengelig eller uten feil. Spott kan være nede for vedlikehold, eller
+              Vi gjør vårt beste for at Spyd skal være tilgjengelig og virke som det skal. Vi kan likevel ikke
+              love at tjenesten alltid er tilgjengelig eller uten feil. Spyd kan være nede for vedlikehold, eller
               fordi en leverandør har problemer.
             </p>
 
@@ -161,7 +161,7 @@ export default function TermsPage() {
                 skyldes innhold du har godkjent eller publisert.
               </li>
               <li>
-                Vårt samlede ansvar er begrenset til det bedriften har betalt for Spott de siste 12 månedene før
+                Vårt samlede ansvar er begrenset til det bedriften har betalt for Spyd de siste 12 månedene før
                 det som gir grunnlag for kravet.
               </li>
               <li>Begrensningene gjelder ikke hvis vi har opptrådt grovt uaktsomt eller med vilje.</li>
@@ -178,7 +178,7 @@ export default function TermsPage() {
             <p>
               <Link href="/personvern">Personvernerklæringen</Link> forklarer hvordan vi behandler
               personopplysninger. Legger bedriften inn personopplysninger om andre, for eksempel bilder av
-              ansatte, behandler vi dem på vegne av bedriften. Da bruker vi dem bare for å levere Spott, etter
+              ansatte, behandler vi dem på vegne av bedriften. Da bruker vi dem bare for å levere Spyd, etter
               disse vilkårene. Ta kontakt hvis bedriften trenger en egen databehandleravtale.
             </p>
 
@@ -202,7 +202,7 @@ export default function TermsPage() {
             <h2>Endringer i vilkårene</h2>
             <p>
               Vi kan endre vilkårene. Vesentlige endringer varsler vi på e-post minst 30 dager før de gjelder.
-              Bruker du Spott etter det, gjelder de nye vilkårene. Er du ikke enig, kan du si opp før endringen.
+              Bruker du Spyd etter det, gjelder de nye vilkårene. Er du ikke enig, kan du si opp før endringen.
               Datoen øverst viser når vilkårene sist ble endret.
             </p>
 

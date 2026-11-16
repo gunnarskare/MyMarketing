@@ -53,7 +53,7 @@ export async function POST() {
     const message = error instanceof Error ? error.message : "";
     if (message.includes("OPENAI_API_KEY")) return NextResponse.json({ error: "AI-tjenesten er ikke satt opp på serveren." }, { status: 503 });
     if (isTimeout(error)) return NextResponse.json({ error: "Analysen tok for lang tid. Prøv igjen." }, { status: 504 });
-    return NextResponse.json({ error: publicMessage(error, "Spott klarte ikke å lage analysen. Prøv igjen.") }, { status: 502 });
+    return NextResponse.json({ error: publicMessage(error, "Spyd klarte ikke å lage analysen. Prøv igjen.") }, { status: 502 });
   }
 }
 

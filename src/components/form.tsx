@@ -2,9 +2,11 @@
 
 import type { ComponentProps, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
+import { button } from "./ui";
 
+// Feltene har kant i --color-edge (3,7:1 mot krem), så de synes som felt.
 const inputClass =
-  "w-full rounded-xl border border-line bg-paper px-3.5 py-3 text-base text-ink placeholder:text-ink-soft/70";
+  "w-full rounded-lg border border-edge bg-white/60 px-3.5 py-3 text-base text-ink placeholder:text-ink-soft/80";
 
 type FieldProps = {
   label: string;
@@ -60,12 +62,11 @@ type SubmitButtonProps = ComponentProps<"button"> & {
 
 export function SubmitButton({ variant = "primary", children, disabled, ...props }: SubmitButtonProps) {
   const { pending } = useFormStatus();
-  const style = variant === "primary" ? "bg-ink text-paper" : "border border-ink text-ink";
   return (
     <button
       type="submit"
       disabled={pending || disabled}
-      className={`rounded-full px-5 py-3 text-base font-semibold transition-opacity disabled:opacity-50 ${style}`}
+      className={variant === "primary" ? button.primary : button.secondary}
       {...props}
     >
       {children}

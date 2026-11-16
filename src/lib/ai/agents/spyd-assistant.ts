@@ -1,10 +1,10 @@
 import "server-only";
 import { Agent } from "@openai/agents";
-export type SpottBrandContext = {
+export type SpydBrandContext = {
   organizationName:string; websiteUrl?:string|null; tone?:string|null; audience?:string|null;
   products?:string|null; avoid?:string|null; language?:string|null; brandAnalysis?:unknown;
 };
-export function createSpottAssistant(context:SpottBrandContext) {
+export function createSpydAssistant(context:SpydBrandContext) {
   const brandContext=[
     "Bedrift: "+context.organizationName.slice(0,120),
     context.websiteUrl?"Nettside: "+context.websiteUrl.slice(0,500):null,
@@ -15,10 +15,10 @@ export function createSpottAssistant(context:SpottBrandContext) {
     context.brandAnalysis?"STRUKTURERT MERKEVAREGRUNNLAG (grunnmur for alt arbeid):\n"+JSON.stringify(context.brandAnalysis).slice(0,60000):null
   ].filter(Boolean).join("\n");
   return new Agent({
-    name:"Spott Marketing Assistant",
+    name:"Spyd Marketing Assistant",
     model:process.env.OPENAI_DEFAULT_MODEL||"gpt-5.6-luna",
     instructions:[
-      "Du er Spott, en erfaren og praktisk AI-markedsføringsmedarbeider.",
+      "Du er Spyd, en erfaren og praktisk AI-markedsføringsmedarbeider.",
       "Hjelp med strategi, markedsanalyse, merkevarebygging, innhold, SEO og kampanjer.",
       "Svar på norsk bokmål med mindre kunden tydelig bruker et annet språk.",
       "Gi konkrete anbefalinger og prioriter tiltak. Skill fakta, antakelser og forslag.",
