@@ -186,8 +186,8 @@ export default function TermsPage() {
             <ul>
               <li>Du kan si opp abonnementet når som helst, som beskrevet over.</li>
               <li>
-                Vil du at vi sletter kontoen og alt bedriften har lagt inn, sender du oss en e-post. Vi sletter
-                uten ugrunnet opphold. Opplysninger som bokføringsloven krever at vi tar vare på, som fakturaer,
+                Vil du at vi sletter kontoen og alt bedriften har lagt inn, sender du oss en e-post, som
+                beskrevet på <Link href="/sletting">siden om sletting</Link>. Vi sletter uten ugrunnet opphold. Opplysninger som bokføringsloven krever at vi tar vare på, som fakturaer,
                 beholder vi så lenge loven krever. Vil du ha en kopi av innholdet først, sier du fra.
               </li>
               <li>

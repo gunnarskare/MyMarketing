@@ -4,7 +4,7 @@ import { cookieOptions, isSupabaseConfigured, supabaseKey, supabaseUrl } from ".
 
 /** Sider som er åpne for alle. Alt annet krever innlogging. */
 // Stripe-webhooken må nås uten innlogging. Den sjekker Stripe-signaturen selv.
-const PUBLIC_PREFIXES = ["/login", "/auth", "/personvern", "/vilkar", "/api/stripe/webhook"];
+const PUBLIC_PREFIXES = ["/login", "/auth", "/personvern", "/vilkar", "/sletting", "/api/stripe/webhook"];
 /** Sider innloggede ikke trenger: de sendes rett til appen. */
 const GUEST_ONLY_PATHS = ["/", "/login"];
 const APP_HOME = "/dashboard";

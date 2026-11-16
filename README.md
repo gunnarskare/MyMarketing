@@ -30,6 +30,7 @@ Uten Supabase-verdiene starter appen likevel, men innlogging er slått av.
 | `src/app/page.tsx` | Forsiden |
 | `src/app/personvern` | Personvernerklæringen |
 | `src/app/vilkar` | Vilkårene for å bruke Spott. Godtas når kontoen opprettes og abonnementet startes |
+| `src/app/sletting` | Slik ber man om sletting, og fjerner tilgangen hos Meta og LinkedIn. Lenken Meta krever |
 | `src/lib/company.ts` | Selskapsopplysninger som vises i bunnteksten, personvernerklæringen og vilkårene |
 | `src/app/login` | Innlogging og registrering med e-post og passord |
 | `src/app/auth/confirm` | Mottar lenken fra bekreftelses-e-posten |
@@ -108,6 +109,20 @@ med service-nøkkelen (`record_ai_usage`), så brukerne kan lese radene til egen
   et nytt domene (skript, bilder, fonter), må domenet legges til der.
 - **Henting fra kunders nettsider** går alltid gjennom `src/lib/safe-fetch.ts`.
 - API-kall uten innlogging får `401` som JSON. Sider sendes til `/login`.
+
+## Slette en kunde
+
+`/sletting` lover at vi sletter innen én måned etter en e-post. Slik gjøres det:
+
+1. Sjekk at e-posten kommer fra adressen som er logget inn på kontoen.
+2. Finn bedriften: `select o.id, o.name from public.organizations o join public.memberships m on m.org_id = o.id join auth.users u on u.id = m.user_id where u.email = '<e-post>';`
+3. Har bedriften abonnement: si det opp straks i Stripe (ikke ved periodens slutt), og vent til webhooken har kommet fram.
+   Kunden og fakturaene blir liggende i Stripe, fordi bokføringsloven krever det.
+4. Når tilkobling til sosiale medier finnes: trekk tilbake tilgangen hos plattformen.
+5. Slett mappen `<org_id>/` i lagringsbøtta `brand-assets`.
+6. Slett bedriften: `delete from public.organizations where id = '<org_id>';`. Alt annet med `org_id` slettes med.
+7. Slett brukeren under Authentication → Users, hvis hen ikke er med i andre bedrifter.
+8. Svar på e-posten at alt er slettet.
 
 ## Tester
 

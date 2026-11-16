@@ -146,7 +146,7 @@ export default function PrivacyPage() {
             <p>
               Kontoen og opplysningene om bedriften lagres så lenge du har konto hos oss. Ber du oss
               slette kontoen, sletter vi opplysningene uten ugrunnet opphold, med mindre loven
-              pålegger oss å beholde noe lenger.
+              pålegger oss å beholde noe lenger. <Link href="/sletting">Slik ber du om sletting</Link>.
             </p>
             <p>Tekniske logger lagres i en begrenset periode hos leverandørene våre.</p>
 
