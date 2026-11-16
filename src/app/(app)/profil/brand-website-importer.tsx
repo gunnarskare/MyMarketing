@@ -156,7 +156,7 @@ export function BrandWebsiteImporter({ defaultWebsite }: { defaultWebsite: strin
           })}
 
           {analysis.assets.length ? (
-            <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-paper/95 p-3 shadow-[0_10px_30px_-20px_rgb(16_27_59/0.5)] backdrop-blur">
+            <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-paper/95 p-3 shadow-[0_10px_30px_-20px_rgb(43_33_29/0.45)] backdrop-blur">
               <button type="button" onClick={() => void importSelected()} disabled={busy !== null || !selected.length} className="rounded-lg bg-terra-deep px-5 py-2.5 text-sm font-semibold text-paper hover:bg-terra-deeper disabled:opacity-50">
                 {busy === "import" ? "Henter filene …" : `Legg ${selected.length} ${selected.length === 1 ? "fil" : "filer"} i biblioteket`}
               </button>
