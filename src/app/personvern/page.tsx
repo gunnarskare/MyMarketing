@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { company } from "@/lib/company";
@@ -17,7 +18,7 @@ export default function PrivacyPage() {
           <h1 className="text-[clamp(2.25rem,9vw,4rem)] leading-none font-black tracking-[-0.03em]">
             Personvern&shy;erklæring
           </h1>
-          <p className="mt-4 text-ink-soft">Sist oppdatert 14. november 2026</p>
+          <p className="mt-4 text-ink-soft">Sist oppdatert 16. november 2026</p>
 
           <div className="legal mt-10">
             <p>
@@ -25,6 +26,9 @@ export default function PrivacyPage() {
               behandlingsansvarlig for personopplysningene som behandles når du bruker Spott. Her
               står det hvilke opplysninger vi behandler, hvorfor vi gjør det, og hvilke rettigheter
               du har.
+            </p>
+            <p>
+              Avtalen om bruk av Spott står i <Link href="/vilkar">vilkårene</Link>.
             </p>
 
             <h2>Opplysninger vi behandler</h2>
@@ -50,9 +54,14 @@ export default function PrivacyPage() {
                 nettsiden dere oppgir, og analysen som lages av den.
               </li>
               <li>
+                <strong>Innlegg:</strong> utkastene Spott lager for bedriften, og det du retter,
+                godkjenner og merker som publisert.
+              </li>
+              <li>
                 <strong>Teknisk:</strong> IP-adresse, tidspunkt og hvilken nettleser du bruker. Dette
-                havner i serverlogger når du besøker nettsiden. Vi teller også hvor mange AI-oppgaver
-                hver bedrift kjører per døgn, for å holde bruken innenfor grensene.
+                havner i serverlogger når du besøker nettsiden. Vi registrerer også hver AI-oppgave
+                bedriften kjører, med tidspunkt, modell, antall tokens og anslått kostnad. Det bruker
+                vi til å holde bruken innenfor grensene og til å vite hva tjenesten koster.
               </li>
             </ul>
             <p>
@@ -68,9 +77,11 @@ export default function PrivacyPage() {
                 bokstav b).
               </li>
               <li>
-                <strong>Lage analyse og innhold med AI:</strong> profilen, teksten fra nettsiden og
-                analysen sendes til en AI-tjeneste som skriver forslag. Grunnlaget er avtalen med deg.
-                Forslagene er bare forslag til du har godkjent dem.
+                <strong>Lage analyse og innlegg med AI:</strong> profilen, teksten fra nettsiden og
+                analysen sendes til en AI-tjeneste som skriver forslag. Når Spott lager eller skriver
+                om innlegg, sendes også innlegget, det du ber om, temaene fra de siste innleggene og
+                filnavnene på bildene i biblioteket, men ikke selve bildene. Grunnlaget er avtalen med
+                deg. Forslagene er bare forslag til du har godkjent dem.
               </li>
               <li>
                 <strong>Ta betalt for abonnementet:</strong> bedriftsnavn, e-post, adresse og
@@ -106,8 +117,9 @@ export default function PrivacyPage() {
                 opplysninger, som IP-adresser i logger, kan bli behandlet utenfor EØS.
               </li>
               <li>
-                <strong>OpenAI</strong> lager merkevareanalysen og tekstforslagene. OpenAI får
-                profilen, teksten fra nettsiden og analysen, men ikke passordet ditt. Etter OpenAIs
+                <strong>OpenAI</strong> lager merkevareanalysen og innleggene. OpenAI får profilen,
+                teksten fra nettsiden, analysen, innleggene og filnavnene på bildene, men ikke selve
+                bildene eller passordet ditt. Etter OpenAIs
                 vilkår brukes opplysninger som sendes via API-et, som standard ikke til å trene modellene.
               </li>
               <li>
@@ -165,8 +177,8 @@ export default function PrivacyPage() {
             <h2>Når tjenesten endres</h2>
             <p>
               Spott er under utvikling. Før vi tar i bruk nye funksjoner som behandler
-              personopplysninger på nye måter, for eksempel tilkobling til kontoer i sosiale medier
-              eller utkast skrevet av kunstig intelligens, oppdaterer vi denne erklæringen. Datoen
+              personopplysninger på nye måter, for eksempel tilkobling til kontoer i sosiale medier,
+              oppdaterer vi denne erklæringen. Datoen
               øverst viser når den sist ble endret.
             </p>
 
